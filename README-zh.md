@@ -32,20 +32,26 @@ API 计算，GUI 不重写任何算法，结果与命令行完全一致。
 
 ## 安装
 
-```bash
-pip install OpenRelTime-Studio
+Studio 与引擎目前都未发布到包索引，请从 Release 附带的文件安装。macOS 上应用包
+完全不需要 Python——下载、解压，把 `OpenRelTimeStudio.app` 拖进「应用程序」即可：
+
+```text
+https://github.com/ZengZichao/OpenRelTime-Studio/releases/download/v0.1.0/OpenRelTimeStudio-v0.1.0-macOS-arm64.zip
 ```
 
-依赖的引擎（`openreltime[plot]`）与 PySide6 会一并安装。若需要固定引擎行为，
-显式指定版本即可：
+其他平台一条命令安装两个 wheel。引擎要带 `[plot]` extra（Studio 的依赖声明就是
+这么写的），matplotlib 由它带来；PySide6 随 Studio 一起装：
 
 ```bash
-pip install "openreltime==0.1.0" OpenRelTime-Studio
+pip install \
+  "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl" \
+  "OpenRelTime-Studio @ https://github.com/ZengZichao/OpenRelTime-Studio/releases/download/v0.1.0/openreltime_studio-0.1.0-py3-none-any.whl"
 ```
 
-> **分发方式。** 本版本以源码分发，另有一份预构建的 macOS 应用包挂在
-> [Releases 页面](https://github.com/ZengZichao/OpenRelTime-Studio/releases)上。若包索引无法解析
-> `openreltime`，请从引擎仓库的检出的源码安装；发布到包索引后会在此处公告。
+> **分发方式。** 上面两个 URL 固定在 **v0.1.0**——升级时请两处一起改，因为分析行为
+> 属于引擎。在 conda / micromamba 环境里先激活目标环境，并优先使用 `python -m pip`。
+> 发布到包索引后会在此处公告；在此之前，或者需要离线安装时，请从源码安装（见下文
+> 「开发」）。
 
 ## 启动
 
@@ -92,12 +98,18 @@ openreltime-studio          # 或：python -m openreltime_studio
 
 ## 打包成独立应用
 
+每个 Release 都已附有一份预构建的 Apple Silicon 应用包（见上文「安装」）。要在
+macOS 上自行构建，就从这份检出里打包：
+
 ```bash
-pip install OpenRelTime-Studio pyinstaller
+python -m pip install "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl"
+python -m pip install -e .
+python -m pip install pyinstaller
 pyinstaller openreltime_studio/resources/OpenRelTimeStudio.spec
 ```
 
 在 macOS 上产出 `dist/OpenRelTimeStudio.app`——双击即用，终端用户无需安装 Python。
+`dist/` 是构建输出，不纳入版本管理；应用包以 Release 附件的形式发布。
 
 ## 文档
 
@@ -112,6 +124,7 @@ pyinstaller openreltime_studio/resources/OpenRelTimeStudio.spec
 ```bash
 git clone https://github.com/ZengZichao/OpenRelTime-Studio.git
 cd OpenRelTime-Studio
+python -m pip install "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl"
 python -m pip install -e ".[dev]"
 
 QT_QPA_PLATFORM=offscreen python -m pytest      # 无头 GUI + 适配层测试

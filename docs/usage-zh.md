@@ -75,14 +75,26 @@ Studio **不含任何算法**。界面上出现的每一个数字都由已安装
 
 ## 2. 安装
 
-### 2.1 从包索引安装
+### 2.1 从 Release 安装
+
+Studio 与引擎目前都未发布到包索引，因此有两条安装路径：macOS 的免安装包，
+或者两个 wheel。
+
+**macOS，无需 Python。** 下载并解压
+[`OpenRelTimeStudio-v0.1.0-macOS-arm64.zip`](https://github.com/ZengZichao/OpenRelTime-Studio/releases/tag/v0.1.0)，
+把 `OpenRelTimeStudio.app` 拖进「应用程序」即可。该包只做了本机 ad-hoc 签名、
+未经 Apple 公证，所以首次启动可能需要右键 →「打开」来越过 Gatekeeper。
+
+**任意平台，用 wheel。** 一条命令装两个，pip 会照常从包索引解析它们的依赖
+（numpy、scipy、pandas、click、matplotlib、PySide6）：
 
 ```bash
-pip install OpenRelTime-Studio
+pip install \
+  "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl" \
+  "OpenRelTime-Studio @ https://github.com/ZengZichao/OpenRelTime-Studio/releases/download/v0.1.0/openreltime_studio-0.1.0-py3-none-any.whl"
 ```
 
-这就是完整的安装步骤。发行包名为 `OpenRelTime-Studio`，导入名为
-`openreltime_studio`。两个运行时依赖会一并装好：
+发行包名为 `OpenRelTime-Studio`，导入名为 `openreltime_studio`。两个运行时依赖：
 
 | 依赖 | 声明的版本要求 | 作用 |
 | --- | --- | --- |
@@ -94,17 +106,13 @@ pip install OpenRelTime-Studio
 
 ```bash
 micromamba activate <你的环境>       # 或：conda activate <你的环境>
-python -m pip install OpenRelTime-Studio
+python -m pip install \
+  "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl" \
+  "OpenRelTime-Studio @ https://github.com/ZengZichao/OpenRelTime-Studio/releases/download/v0.1.0/openreltime_studio-0.1.0-py3-none-any.whl"
 ```
 
-只有一个可选 extras，它不增加任何分析能力：
-
-```bash
-pip install "OpenRelTime-Studio[dev]"   # pytest、pytest-cov、ruff、mypy —— 供贡献者使用
-```
-
-> **分发方式。** 本版本以源码以及 `dist/` 中的应用包形式分发。若包索引无法解析
-> `openreltime`，请从引擎仓库的检出的源码安装；发布到包索引后会在此处公告。
+`dev` extras（pytest、pytest-cov、ruff、mypy）不增加任何分析能力，只能从源码
+检出获得，见 §2.4。
 
 检查装好了什么：
 
@@ -112,26 +120,26 @@ pip install "OpenRelTime-Studio[dev]"   # pytest、pytest-cov、ruff、mypy —�
 python -c "import openreltime, openreltime_studio; print(openreltime.__version__)"
 ```
 
-**分发方式。** 本版本以源码以及 `dist/` 中的应用包形式分发。若包索引无法解析
-`openreltime`，请从引擎仓库的检出的源码安装
-（<https://github.com/ZengZichao/OpenRelTime>）；发布到包索引后会在此处公告。
-两种方式的依赖声明完全一致：Studio 需要的是 `openreltime` 这个**发行版**，
-而不是引擎源码树的副本或路径。
+> **分发方式。** 上面两个 wheel 的 URL 固定在 **v0.1.0**；升级时请两处一起改，
+> 因为分析行为属于引擎。发布到包索引后会在此处公告。无论走哪条路径，依赖声明都
+> 一样：Studio 需要的是 `openreltime` 这个**发行版**，而不是引擎源码树的副本
+> 或路径。
 
 ### 2.2 锁定引擎版本
 
-分析行为由引擎决定，因此需要长期复现的课题应当锁定引擎版本。把锁版本与
-Studio 一起安装即可两者兼得：
+分析行为由引擎决定，因此需要长期复现的课题应当记录用的是哪个引擎。Release 的
+URL 已经替你锁好了：上面两种安装方式都显式写明了 `v0.1.0`，重复执行就得到同一
+组合。
+
+要只升级引擎而不动 Studio，就把同一个参数指向新版本的 Release：
 
 ```bash
-pip install "openreltime==0.1.0" OpenRelTime-Studio
+python -m pip install --upgrade \
+  "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl"
 ```
 
-只升级引擎而不动 Studio：
-
-```bash
-python -m pip install -U openreltime
-```
+请把两个版本号与结果放在一起记录；`docs/usage-zh.md` §7 说明了每次运行写出的
+内容。
 
 ### 2.3 支持的平台与 Python 版本
 
@@ -168,20 +176,26 @@ openreltime-studio --self-check
 ```bash
 git clone https://github.com/ZengZichao/OpenRelTime-Studio.git
 cd OpenRelTime-Studio
+python -m pip install "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl"
 python -m pip install -e ".[dev]"
 ```
 
+检出仍然需要引擎作为一个**已安装的发行版**，在包索引发布之前就只能用 Release
+的 wheel，所以要先装引擎再装 Studio。
+
 ### 2.5 构建独立应用（可选）
 
-用包内附带的 PyInstaller spec 可以构建双击即用的 macOS 应用，最终用户无需
-安装 Python：
+每个 Release 都已附有一份预构建的应用包（见 §2.1）。要自己构建——双击即用的
+macOS 应用，最终用户无需安装 Python——就用包内附带的 PyInstaller spec：
 
 ```bash
-pip install OpenRelTime-Studio pyinstaller
+python -m pip install -e .
+python -m pip install pyinstaller
 pyinstaller openreltime_studio/resources/OpenRelTimeStudio.spec
 ```
 
-产物为 `dist/OpenRelTimeStudio.app`。该 spec 会把双语消息目录、SVG 图标与内置
+产物为 `dist/OpenRelTimeStudio.app`；`dist/` 是构建输出，不纳入版本管理，应用包
+以 Release 附件的形式发布。该 spec 会把双语消息目录、SVG 图标与内置
 示例（`openreltime_studio/examples/`：`example_tree.nwk`、
 `example_calibrations.tsv` 及其 `README.md`）打进包内——三者都在运行时从包内
 读取——同时强制 `console=False`，并设置包标识符 `org.openreltime.studio`。
@@ -1046,8 +1060,10 @@ CI 标签页上的那行提示：未指定位点数时 `vS(b) = 0`，区间只�
 ```bash
 git clone https://github.com/ZengZichao/OpenRelTime-Studio.git
 cd OpenRelTime-Studio
-python -m pip install -e ".[dev]"
 ```
+
+接着照 §2.4 安装引擎与可编辑检出：`-e ".[dev]"` 要先把 `openreltime` 这个
+发行版解析出来，所以引擎得先装上。
 
 `[dev]` 装上 pytest、pytest-cov、ruff 与 mypy。工具配置都写在 `pyproject.toml`
 里：`testpaths = ["openreltime_studio/tests"]` 且 `addopts = "-q"`；ruff 行宽 88、

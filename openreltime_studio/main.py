@@ -5,11 +5,14 @@
 
 运行（开发态）::
 
-    pip install "OpenRelTime-Studio[dev]"   # 会一并装上引擎 openreltime[plot]
-    openreltime-studio                      # 或 python -m openreltime_studio
+    # 引擎尚未发布到包索引，先装 Release 的 wheel
+    python -m pip install "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl"
+    python -m pip install -e ".[dev]"           # 引擎已就位，依赖可直接解析
+    openreltime-studio                          # 或 python -m openreltime_studio
 
-打包成独立可执行文件（双击即用，无浏览器）::
+打包成独立可执行文件（双击即用，终端用户无需 Python）::
 
+    python -m pip install pyinstaller
     pyinstaller openreltime_studio/resources/OpenRelTimeStudio.spec
 
 功能模块：

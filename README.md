@@ -34,22 +34,30 @@ the command line exactly.
 
 ## Install
 
-```bash
-pip install OpenRelTime-Studio
+Neither Studio nor the engine is published to a package index yet, so install
+from the files attached to the release. On macOS the app bundle needs no Python
+at all — download it, unzip, drag `OpenRelTimeStudio.app` to *Applications*:
+
+```text
+https://github.com/ZengZichao/OpenRelTime-Studio/releases/download/v0.1.0/OpenRelTimeStudio-v0.1.0-macOS-arm64.zip
 ```
 
-That pulls in the engine (`openreltime[plot]`) and PySide6. Pin the engine
-explicitly if you need a specific analysis behaviour:
+Everywhere else, install both wheels in one command. The engine is named with
+its `[plot]` extra because Studio's dependency declaration asks for it, and that
+is what brings in matplotlib; PySide6 comes with Studio:
 
 ```bash
-pip install "openreltime==0.1.0" OpenRelTime-Studio
+pip install \
+  "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl" \
+  "OpenRelTime-Studio @ https://github.com/ZengZichao/OpenRelTime-Studio/releases/download/v0.1.0/openreltime_studio-0.1.0-py3-none-any.whl"
 ```
 
-> **Distribution.** This release is distributed as source, plus a prebuilt macOS
-> bundle attached to the
-> [releases page](https://github.com/ZengZichao/OpenRelTime-Studio/releases).
-> Install the engine from a checkout of its repository if your index cannot
-> resolve `openreltime`; an index release will be announced here.
+> **Distribution.** Those two URLs pin **v0.1.0** — replace the version in both
+> together to move to a newer release, since analysis behaviour belongs to the
+> engine. In a conda or micromamba environment, activate the target environment
+> first and prefer `python -m pip`. An index release will be announced here when
+> it happens; until then, or to work offline, install from source (see
+> *Development* below).
 
 ## Run
 
@@ -104,13 +112,19 @@ or on a cluster.
 
 ## Building a standalone app
 
+A prebuilt Apple Silicon bundle is attached to every release (*Install* above).
+To build one yourself from this checkout:
+
 ```bash
-pip install OpenRelTime-Studio pyinstaller
+python -m pip install "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl"
+python -m pip install -e .
+python -m pip install pyinstaller
 pyinstaller openreltime_studio/resources/OpenRelTimeStudio.spec
 ```
 
 Produces `dist/OpenRelTimeStudio.app` on macOS — double-click, no Python
-install required for the end user.
+install required for the end user. `dist/` is build output and is not
+committed; the bundle is published as a release attachment.
 
 ## Documentation
 
@@ -125,6 +139,7 @@ install required for the end user.
 ```bash
 git clone https://github.com/ZengZichao/OpenRelTime-Studio.git
 cd OpenRelTime-Studio
+python -m pip install "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl"
 python -m pip install -e ".[dev]"
 
 QT_QPA_PLATFORM=offscreen python -m pytest      # headless GUI + adapter suite

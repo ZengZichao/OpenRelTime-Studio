@@ -84,15 +84,29 @@ Engine home page: <https://github.com/ZengZichao/OpenRelTime>.
 
 ## 2. Installation
 
-### 2.1 From the package index
+### 2.1 From the release
+
+Neither Studio nor the engine is published to a package index yet, so there are
+two ways in: the frozen macOS bundle, or the two wheels.
+
+**macOS, no Python required.** Download and unzip
+[`OpenRelTimeStudio-v0.1.0-macOS-arm64.zip`](https://github.com/ZengZichao/OpenRelTime-Studio/releases/tag/v0.1.0),
+then drag `OpenRelTimeStudio.app` into **Applications**. The bundle is ad-hoc
+signed and not notarised, so the first launch may need right-click → **Open** to
+get past Gatekeeper.
+
+**Any platform, from the wheels.** One command installs both; pip resolves their
+dependencies (numpy, scipy, pandas, click, matplotlib, PySide6) from the index as
+usual:
 
 ```bash
-pip install OpenRelTime-Studio
+pip install \
+  "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl" \
+  "OpenRelTime-Studio @ https://github.com/ZengZichao/OpenRelTime-Studio/releases/download/v0.1.0/openreltime_studio-0.1.0-py3-none-any.whl"
 ```
 
-That is the whole install. The package name is `OpenRelTime-Studio` and the
-importable module is `openreltime_studio`. The two runtime dependencies are
-installed with it:
+The package name is `OpenRelTime-Studio` and the importable module is
+`openreltime_studio`. The two runtime dependencies are:
 
 | Dependency | Declared requirement | Why |
 | --- | --- | --- |
@@ -100,22 +114,17 @@ installed with it:
 | `PySide6` | `>=6.5` | the Qt bindings that provide the window, widgets, SVG icon rendering |
 
 In a conda/micromamba environment, activate the target environment first and
-prefer `python -m pip` so the package lands in that environment:
+prefer `python -m pip` so the packages land in that environment:
 
 ```bash
 micromamba activate <your-env>       # or: conda activate <your-env>
-python -m pip install OpenRelTime-Studio
+python -m pip install \
+  "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl" \
+  "OpenRelTime-Studio @ https://github.com/ZengZichao/OpenRelTime-Studio/releases/download/v0.1.0/openreltime_studio-0.1.0-py3-none-any.whl"
 ```
 
-There is one optional extra, and it adds nothing to the analysis features:
-
-```bash
-pip install "OpenRelTime-Studio[dev]"   # pytest, pytest-cov, ruff, mypy — for contributors
-```
-
-> **Distribution.** This build is distributed as source and as the app bundle in
-> `dist/`. Install the engine from a checkout of its repository if your index
-> cannot resolve `openreltime`; an index release will be announced here.
+The `dev` extra (pytest, pytest-cov, ruff, mypy) adds nothing to the analysis
+features, and ships only from a source checkout — see §2.4.
 
 Check what got installed:
 
@@ -123,27 +132,28 @@ Check what got installed:
 python -c "import openreltime, openreltime_studio; print(openreltime.__version__)"
 ```
 
-**Distribution.** This build is distributed as source and as the app bundle in
-`dist/`. Install the engine from a checkout of its repository,
-<https://github.com/ZengZichao/OpenRelTime>, if your index cannot resolve
-`openreltime`; an index release will be announced here. In either case the
-requirement is the same: Studio needs the `openreltime` *distribution*, and
-never a copy of, or a path into, the engine's source tree.
+> **Distribution.** Both wheel URLs pin **v0.1.0**; replace the version in both
+> together, because analysis behaviour belongs to the engine. An index release
+> will be announced here once one exists. Either way the requirement is
+> unchanged: Studio needs the `openreltime` *distribution*, and never a copy of,
+> or a path into, the engine's source tree.
 
 ### 2.2 Pinning the engine version
 
-Analysis behaviour is the engine's, so pin it when a study must stay
-reproducible. Installing the pin next to Studio keeps both:
+Analysis behaviour is the engine's, so a study that must stay reproducible has
+to record which engine produced it. The release URLs pin it for you: both install
+forms above name `v0.1.0` explicitly, so repeating them rebuilds the same pair.
+
+To move an existing install to a newer engine, point the same argument at the
+newer release and let pip upgrade in place:
 
 ```bash
-pip install "openreltime==0.1.0" OpenRelTime-Studio
+python -m pip install --upgrade \
+  "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl"
 ```
 
-To move an existing install to a newer engine without touching Studio:
-
-```bash
-python -m pip install -U openreltime
-```
+Record the two versions alongside the results; `docs/usage-en.md` §7 describes
+what each run writes out.
 
 ### 2.3 Supported platforms and Python versions
 
@@ -179,24 +189,31 @@ a `.app` was packaged with its resources.
 
 ### 2.4 Installing from source
 
+A checkout still needs the engine as an installed distribution, and until an
+index release exists that means the release wheel:
+
 ```bash
 git clone https://github.com/ZengZichao/OpenRelTime-Studio.git
 cd OpenRelTime-Studio
+python -m pip install "openreltime[plot] @ https://github.com/ZengZichao/OpenRelTime/releases/download/v0.1.0/openreltime-0.1.0-py3-none-any.whl"
 python -m pip install -e ".[dev]"
 ```
 
 ### 2.5 Building a standalone app (optional)
 
-A double-clickable macOS application, with no Python install needed for the
-end user, is built with the PyInstaller spec shipped in the package:
+A prebuilt bundle is attached to every release (§2.1). To make your own — a
+double-clickable macOS application with no Python install needed for the end
+user — build it with the PyInstaller spec shipped in the package:
 
 ```bash
-pip install OpenRelTime-Studio pyinstaller
+python -m pip install -e .
+python -m pip install pyinstaller
 pyinstaller openreltime_studio/resources/OpenRelTimeStudio.spec
 ```
 
-This produces `dist/OpenRelTimeStudio.app`. The spec bundles the bilingual
-message catalogs, the SVG icon and the built-in example
+This produces `dist/OpenRelTimeStudio.app`; `dist/` is build output and is not
+committed, the bundle is published as a release attachment. The spec bundles the
+bilingual message catalogs, the SVG icon and the built-in example
 (`openreltime_studio/examples/`: `example_tree.nwk`, `example_calibrations.tsv`
 and its `README.md`) — all three are read at run time from inside the package —
 forces `console=False`, and sets the bundle identifier
@@ -1180,8 +1197,11 @@ subset of those options as form fields with the defaults listed in §6.
 ```bash
 git clone https://github.com/ZengZichao/OpenRelTime-Studio.git
 cd OpenRelTime-Studio
-python -m pip install -e ".[dev]"
 ```
+
+Then install the engine and the editable checkout exactly as in §2.4: the
+checkout needs the `openreltime` *distribution* present before `-e ".[dev]"` can
+resolve it.
 
 `[dev]` adds pytest, pytest-cov, ruff and mypy. Tool settings are declared in
 `pyproject.toml`: `testpaths = ["openreltime_studio/tests"]` with `addopts =

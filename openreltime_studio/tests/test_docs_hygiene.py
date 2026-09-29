@@ -38,6 +38,18 @@ DISTRIBUTION_REF = re.compile(
 #: when it explains that Studio depends on the engine.
 ENGINE_URL = "github.com/ZengZichao/OpenRelTime"
 
+#: Neither distribution is on a package index yet, so the README must install
+#: both wheels from the release instead of naming an index.  These are the two
+#: URLs it has to carry; a typo in either is an install failure for every user.
+ENGINE_WHEEL = (
+    "github.com/ZengZichao/OpenRelTime/releases/download/"
+    "v0.1.0/openreltime-0.1.0-py3-none-any.whl"
+)
+STUDIO_WHEEL = (
+    "github.com/ZengZichao/OpenRelTime-Studio/releases/download/"
+    "v0.1.0/openreltime_studio-0.1.0-py3-none-any.whl"
+)
+
 #: Revision-provenance markers: a ticket id, a review round, or a submission
 #: checklist tag.  None of them belong in a released project, and none of them
 #: may creep back in later.  Matching is case-sensitive on purpose: the
@@ -140,9 +152,37 @@ def test_local_markdown_links_resolve() -> None:
 
 def test_readme_states_the_dependency_relationship() -> None:
     text = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
-    assert "pip install OpenRelTime-Studio" in text
+    assert STUDIO_WHEEL in text
+    assert ENGINE_WHEEL in text
     assert ENGINE_URL in text
     assert DISTRIBUTION_REF.search(text)
+
+
+#: Neither project is on a package index, so a bare index install is a
+#: guaranteed failure that reads perfectly plausibly.  Guard every shipped
+#: Markdown and Python file against reintroducing one — module docstrings ship
+#: inside the wheel, so they are as user-facing as the manual.
+INDEX_INSTALL = re.compile(
+    r"pip install[^\n]*?(?:\s|\")OpenRelTime-Studio(?:\[dev\])?(?:\"|\s|$)"
+    r"|pip install[^\n]*?\"openreltime==",
+    re.IGNORECASE,
+)
+
+
+def test_docs_do_not_name_an_index_that_has_no_release() -> None:
+    offenders = []
+    for path in _publishable_sources():
+        for lineno, line in enumerate(
+            path.read_text(encoding="utf-8").splitlines(), start=1
+        ):
+            if INDEX_INSTALL.search(line):
+                offenders.append(
+                    f"{path.relative_to(REPO_ROOT)}:{lineno}: {line.strip()[:70]}"
+                )
+    assert not offenders, (
+        "no index release exists yet, so docs must install from the release "
+        "URLs or from source: \n" + "\n".join(offenders)
+    )
 
 
 def test_no_revision_provenance_markers() -> None:

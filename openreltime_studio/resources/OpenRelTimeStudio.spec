@@ -3,10 +3,12 @@
 
 Build a standalone desktop application (no browser, no Python install required)::
 
-    pip install OpenRelTime-Studio pyinstaller
+    python -m pip install -e .
+    python -m pip install pyinstaller
     pyinstaller openreltime_studio/resources/OpenRelTimeStudio.spec
 
-Produces ``dist/OpenRelTimeStudio.app`` on macOS.
+Produces ``dist/OpenRelTimeStudio.app`` on macOS.  ``dist/`` is build output:
+it is not committed, and the bundle ships as a GitHub Release attachment.
 """
 
 import os
