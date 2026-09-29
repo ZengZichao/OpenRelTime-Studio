@@ -1,0 +1,4 @@
+{
+  "title": "About OpenRelTime Studio",
+  "body": "OpenRelTime Studio v{version} (engine v{engine})\\n\\nA native desktop front end for OpenRelTime — no browser involved.\\nEvery calculation calls the OpenRelTime Python API (GPL-3.0).\\n\\nAnalyses: RRF · calibration · confidence intervals · CorrTest · ddBD\\nInteractive calibration: click a node on the tree to set a calibration point."
+}

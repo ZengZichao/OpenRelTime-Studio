@@ -1,0 +1,19 @@
+{
+  "col_node_label": "NodeLabel",
+  "col_node_id": "NodeId",
+  "col_des1": "Des1",
+  "col_des2": "Des2",
+  "col_time": "Time",
+  "col_rate": "Rate",
+  "col_rrf_rate": "RRFRate",
+  "col_implied_rate": "ImpliedRate",
+  "col_ci_node_id": "Node ID",
+  "col_ci_label": "Node label",
+  "col_ci_time": "Time (Mya)",
+  "col_ci_se": "SE",
+  "col_ci_lower": "CI lower",
+  "col_ci_upper": "CI upper",
+  "col_ci_width": "CI width",
+  "col_ci_se_reliable": "SE reliable",
+  "col_ci_notes": "Notes"
+}

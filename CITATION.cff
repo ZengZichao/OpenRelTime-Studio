@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use OpenRelTime Studio, cite the software below and the OpenRelTime engine it drives."
+title: "OpenRelTime Studio: a bilingual desktop GUI for relative-rate molecular dating"
+abstract: >-
+  Native PySide6 desktop front end for the OpenRelTime relative-rate framework.
+  Provides RRF rate and time inference, interactive tree-based calibration,
+  confidence intervals, CorrTest rate-autocorrelation testing and a ddBD
+  diversification prior, with export of results and equivalent command-line
+  scripts. The interface switches live between English and Simplified Chinese
+  and between light and dark themes.
+type: software
+authors:
+  - name: "曾子超"
+    email: "zengzichao@sjtu.edu.cn"
+    orcid: "https://orcid.org/0000-0001-6553-970X"
+version: "0.1.0"
+date-released: "2026-09-29"
+license: GPL-3.0-or-later
+repository-code: "https://github.com/ZengZichao/OpenRelTime-Studio"
+url: "https://github.com/ZengZichao/OpenRelTime-Studio"
+keywords:
+  - molecular dating
+  - phylogenetics
+  - relative rate framework
+  - timetree
+  - desktop GUI
+  - PySide6
+requires:
+  - name: "openreltime"
+    version: ">=0.1.0"
+    type: software
+    repository-code: "https://github.com/ZengZichao/OpenRelTime"

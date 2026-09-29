@@ -1,0 +1,19 @@
+{
+  "col_node_label": "节点标签",
+  "col_node_id": "节点编号",
+  "col_des1": "子节点 1",
+  "col_des2": "子节点 2",
+  "col_time": "时间",
+  "col_rate": "速率",
+  "col_rrf_rate": "RRF 相对速率",
+  "col_implied_rate": "隐含速率",
+  "col_ci_node_id": "节点编号",
+  "col_ci_label": "节点标签",
+  "col_ci_time": "时间（Mya）",
+  "col_ci_se": "标准误",
+  "col_ci_lower": "置信下限",
+  "col_ci_upper": "置信上限",
+  "col_ci_width": "区间宽度",
+  "col_ci_se_reliable": "SE 可靠",
+  "col_ci_notes": "备注"
+}

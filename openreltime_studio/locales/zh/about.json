@@ -1,0 +1,4 @@
+{
+  "title": "关于 OpenRelTime Studio",
+  "body": "OpenRelTime Studio v{version}（引擎 v{engine}）\\n\\nOpenRelTime 的原生桌面图形界面（不依赖浏览器）。\\n所有计算调用 openreltime Python API（GPL-3.0）。\\n\\n支持：RRF · 校正 · 置信区间 · CorrTest · ddBD\\n交互式校正：在树上点击节点即可设置校正点。"
+}

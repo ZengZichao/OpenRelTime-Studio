@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"
+     role="img" aria-labelledby="t d">
+  <title id="t">OpenRelTime Studio</title>
+  <desc id="d">A time-scaled evolutionary tree sweeping left to right: a cool-coloured
+    upper clade and a warm-coloured lower clade fork from a calibration-ringed node.</desc>
+  <defs>
+    <radialGradient id="bg" cx="0.34" cy="0.26" r="1.05">
+      <stop offset="0" stop-color="#4b82e8"/>
+      <stop offset="0.45" stop-color="#2a58b4"/>
+      <stop offset="1" stop-color="#0f1c3a"/>
+    </radialGradient>
+    <linearGradient id="ice" gradientUnits="userSpaceOnUse" x1="100" y1="128" x2="220" y2="52">
+      <stop offset="0" stop-color="#8ec4ff"/>
+      <stop offset="1" stop-color="#f2f9ff"/>
+    </linearGradient>
+    <linearGradient id="ember" gradientUnits="userSpaceOnUse" x1="100" y1="128" x2="215" y2="212">
+      <stop offset="0" stop-color="#f08a2a"/>
+      <stop offset="1" stop-color="#ffd98a"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="12" y="12" width="232" height="232" rx="54" ry="54" fill="url(#bg)"/>
+  <rect x="12.9" y="12.9" width="230.2" height="230.2" rx="53.1" ry="53.1"
+        fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="1.8"/>
+
+  <!-- 时间网格：以根为圆心的两道弧，暗示「距今」的等时线 -->
+  <g fill="none" stroke="#ffffff" stroke-linecap="round">
+    <path d="M150,44 A 108,108 0 0 1 150,212" stroke-opacity="0.10" stroke-width="3"/>
+    <path d="M196,66 A 84,84 0 0 1 196,190" stroke-opacity="0.07" stroke-width="3"/>
+  </g>
+
+  <!-- 树干：根（左中）→ 分叉节点 -->
+  <path d="M42,128 C 62,128 74,128 100,128" fill="none" stroke="#dcecff"
+        stroke-opacity="0.92" stroke-width="14" stroke-linecap="round"/>
+
+  <!-- 上支：冷色 -->
+  <g fill="none" stroke="url(#ice)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M100,128 C 124,128 128,74 156,74" stroke-width="11"/>
+    <path d="M156,74 C 182,74 186,52 214,52" stroke-width="8"/>
+    <path d="M156,74 C 184,74 186,100 212,100" stroke-width="8"/>
+  </g>
+
+  <!-- 下支：暖色（速率较快的一支）-->
+  <g fill="none" stroke="url(#ember)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M100,128 C 122,128 126,180 152,180" stroke-width="11"/>
+    <path d="M152,180 C 180,180 182,160 210,160" stroke-width="8"/>
+    <path d="M152,180 C 178,180 182,208 206,208" stroke-width="8"/>
+  </g>
+
+  <!-- 尖：现生类群 -->
+  <g fill="#ffffff">
+    <circle cx="214" cy="52" r="8"/>
+    <circle cx="212" cy="100" r="8"/>
+    <circle cx="210" cy="160" r="8"/>
+    <circle cx="206" cy="208" r="8"/>
+  </g>
+
+  <!-- 根点 + 校正环：环套在分叉节点上，是本软件的核心交互 -->
+  <circle cx="42" cy="128" r="8.5" fill="#ffffff" fill-opacity="0.95"/>
+  <circle cx="100" cy="128" r="19" fill="none" stroke="#f5c518" stroke-width="5.5"/>
+  <circle cx="100" cy="128" r="7" fill="#f5c518"/>
+</svg>

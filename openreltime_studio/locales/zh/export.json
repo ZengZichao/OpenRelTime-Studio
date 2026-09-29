@@ -1,0 +1,5 @@
+{
+  "note_image_failed": "图像导出失败（{error}）",
+  "note_no_cli": "没有可导出的等效 CLI 命令，未写出 run_reltime.sh",
+  "note_cals_ui_only": "校正点仅存在于界面中（等效脚本不含 calibrate 步骤），未写出 {file}"
+}

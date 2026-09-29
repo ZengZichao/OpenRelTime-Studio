@@ -1,0 +1,19 @@
+{
+  "bound_need_one_field": "Fill in at least one of Min / Max / Density",
+  "bounds_needs_numeric_bound": "method=bounds requires at least one numeric bound; use the effective method for a density-only calibration",
+  "bound_must_be_finite": "The {name} bound must be a finite number",
+  "bound_cannot_be_negative": "The {name} bound cannot be negative",
+  "max_bound_zero_scales_tree": "A Max bound of 0 rescales every age in the tree to 0 (and divides the solver by zero); enter a positive maximum age",
+  "min_bound_exceeds_max_bound": "The Min bound cannot be greater than the Max bound",
+  "no_target": "(no target)",
+  "node_id_not_in_tree": "node_id {node_id} is not present in the current tree",
+  "node_id_is_tip": "node_id {node_id} is a tip and cannot serve as a calibration target",
+  "calibration_has_no_target": "The calibration has neither a node_id nor a taxon_set",
+  "taxon_set_unresolved": "taxon_set {taxa} could not be resolved: {error}",
+  "taxon_set_unknown_names": "Names in taxon_set are neither tips nor resolvable clades: {names}",
+  "taxon_set_empty_after_resolution": "taxon_set resolved to an empty set (the clade contains no tips of the current tree)",
+  "taxon_set_single_tip": "taxon_set {taxa} corresponds to a single tip, not an internal node",
+  "branch_var_missing_columns": "{path} is missing the column(s) {columns}; a header with node_id and var is required",
+  "ddbd_no_internal_nodes": "The tree has no internal nodes, so the ddBD density cannot be computed",
+  "unsupported_result_type": "unsupported result type: {name}"
+}

@@ -1,0 +1,5 @@
+{
+  "note_image_failed": "Figure export failed ({error})",
+  "note_no_cli": "No equivalent CLI commands to export, so run_reltime.sh was not written",
+  "note_cals_ui_only": "Calibration points exist only in the interface (the equivalent script has no calibrate step), so {file} was not written"
+}

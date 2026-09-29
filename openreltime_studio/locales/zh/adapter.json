@@ -1,0 +1,19 @@
+{
+  "bound_need_one_field": "Min / Max / Density 至少要填写一项",
+  "bounds_needs_numeric_bound": "method=bounds 需要至少一个数值边界；纯密度校正请用 effective 方法",
+  "bound_must_be_finite": "{name} 边界必须是有限数值",
+  "bound_cannot_be_negative": "{name} 边界不能为负",
+  "max_bound_zero_scales_tree": "Max 边界为 0 会把全树年龄整体缩放为 0（且求解器除零），请填写一个正的年龄上限",
+  "min_bound_exceeds_max_bound": "Min 边界不能大于 Max 边界",
+  "no_target": "（无目标）",
+  "node_id_not_in_tree": "node_id {node_id} 不在当前树中",
+  "node_id_is_tip": "node_id {node_id} 是一个尖，不能作为校正目标",
+  "calibration_has_no_target": "校正点既无 node_id 也无 taxon_set",
+  "taxon_set_unresolved": "taxon_set {taxa} 无法解析：{error}",
+  "taxon_set_unknown_names": "taxon_set 中的名称既不是尖也不是可解析的群：{names}",
+  "taxon_set_empty_after_resolution": "taxon_set 解析后为空（群内没有当前树的尖）",
+  "taxon_set_single_tip": "taxon_set {taxa} 只对应一个尖，不是内部节点",
+  "branch_var_missing_columns": "{path} 缺少列 {columns}；需要表头 node_id 与 var",
+  "ddbd_no_internal_nodes": "树上没有内部节点，无法计算 ddBD 密度",
+  "unsupported_result_type": "不支持的结果类型：{name}"
+}

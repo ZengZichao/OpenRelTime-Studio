@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }} / Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system libraries for Qt (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libegl1 libgl1 libxkbcommon0
+
+      - name: Install the OpenRelTime engine
+        # The engine is a separate repository and is distributed from source
+        # there, not from a package index, so it is installed from its release
+        # tag.  Studio talks to it through its public Python API only.
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "openreltime[plot] @ git+https://github.com/ZengZichao/OpenRelTime.git@v0.1.0"
+
+      - name: Install OpenRelTime Studio with dev extras
+        run: python -m pip install -e ".[dev]"
+
+      - name: Lint (syntax and unused names)
+        run: python -m ruff check . --select F,E9
+
+      - name: Bundled resource self-check
+        run: openreltime-studio --self-check
+
+      - name: Translation and theme gate
+        run: python tools/check_i18n.py
+
+      - name: Test suite (headless GUI)
+        run: python -m pytest -q
+
+  i18n-symmetry:
+    name: Bilingual catalog symmetry
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check catalogs without Qt installed
+        run: |
+          python -m pip install pytest
+          python -m pytest openreltime_studio/tests/test_i18n_catalogs.py -q
+
+  package:
+    name: Build and inspect distributions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build backend
+        run: python -m pip install --upgrade build twine
+      - name: Build sdist and wheel
+        run: python -m build
+      - name: Verify catalogs, icon and spec landed in the wheel
+        run: |
+          python - <<'PY'
+          import glob, zipfile
+
+          wheel = glob.glob("dist/*.whl")[0]
+          names = zipfile.ZipFile(wheel).namelist()
+          for pattern, label in (
+              ("openreltime_studio/locales/en/*.json", "English catalog"),
+              ("openreltime_studio/locales/zh/*.json", "Chinese catalog"),
+              ("openreltime_studio/resources/icons/*.svg", "SVG icon"),
+              ("openreltime_studio/resources/*.spec", "PyInstaller spec"),
+          ):
+              import fnmatch
+              assert any(fnmatch.fnmatch(n, pattern) for n in names), f"missing {label} in {wheel}"
+              print("ok:", label)
+          PY
+      - name: Check metadata
+        # `python -m build` writes only the sdist and wheel here; the frozen
+        # macOS bundle is produced by PyInstaller and published as a Release
+        # asset, so it never shares this directory with them in CI.
+        run: twine check dist/*.tar.gz dist/*.whl

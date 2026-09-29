@@ -1,0 +1,6 @@
+{
+  "analysis_failed": "分析失败：%s",
+  "file_not_readable": "文件不存在或不可读：{error}",
+  "node_or_taxon_missing": "节点或分类不存在：{error}",
+  "invalid_input": "输入不合法：{error}"
+}

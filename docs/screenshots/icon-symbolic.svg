@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"
+     role="img" aria-labelledby="t">
+  <title id="t">OpenRelTime Studio (small size)</title>
+  <rect x="8" y="8" width="240" height="240" rx="56" ry="56" fill="#2a58b4"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40,128 H96" stroke="#eaf3ff" stroke-width="24"/>
+    <path d="M96,128 C 130,128 134,62 196,62" stroke="#c8e2ff" stroke-width="19"/>
+    <path d="M96,128 C 130,128 134,194 196,194" stroke="#ffb84d" stroke-width="19"/>
+  </g>
+  <g fill="#ffffff">
+    <circle cx="196" cy="62" r="19"/>
+    <circle cx="196" cy="194" r="19"/>
+  </g>
+  <circle cx="96" cy="128" r="30" fill="none" stroke="#f5c518" stroke-width="13"/>
+</svg>

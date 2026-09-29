@@ -1,0 +1,22 @@
+# Source distribution contents: the bilingual catalogs, the SVG icon and the
+# generated bitmaps, the PyInstaller spec, and the docs that explain them.
+include LICENSE
+include README.md
+include README-zh.md
+include CHANGELOG.md
+include CHANGELOG-zh.md
+include CITATION.cff
+include THIRD-PARTY-NOTICES.md
+include THIRD-PARTY-NOTICES-zh.md
+include pyproject.toml
+include conftest.py
+recursive-include openreltime_studio/locales *.json
+recursive-include openreltime_studio/resources *.svg *.png *.icns *.spec
+recursive-include openreltime_studio/examples *.nwk *.tsv *.md
+recursive-include docs *.md *.png *.svg
+recursive-include tools *.py
+recursive-include data/examples *.nwk *.tsv *.md
+
+prune **/__pycache__
+global-exclude *.py[cod]
+global-exclude .DS_Store

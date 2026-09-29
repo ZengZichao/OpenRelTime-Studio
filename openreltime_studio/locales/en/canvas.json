@@ -1,0 +1,13 @@
+{
+  "empty_hint": "Load a tree — or open the bundled example — and the coloured time tree appears here",
+  "divergence_time_axis": "Divergence time",
+  "node_time_axis": "Node time",
+  "density_axis": "Density",
+  "node_label": "Node {node_id}",
+  "node_label_with_tips": "Node {node_id} ({tips})",
+  "hover_time": "time {time}",
+  "hover_rate": "rate {rate}",
+  "unit_mya": "Mya",
+  "axis_time": "Time (Mya)",
+  "axis_relative": "Relative time"
+}

@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+# Build output is never committed.  `dist/` holds the sdist/wheel and the frozen
+# OpenRelTimeStudio.app; the macOS bundle ships as a GitHub Release asset rather
+# than as tracked source, so the repository stays a pure text tree.  Rebuild it
+# with the packaged PyInstaller spec (docs/usage-en.md) and verify with
+# `openreltime-studio --self-check`.
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+.DS_Store
+.smoke_out/
+*.log

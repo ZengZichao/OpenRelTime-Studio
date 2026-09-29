@@ -1,0 +1,4 @@
+node_id	taxon_set	min_bound	max_bound	density	density_params
+-	Phascolarctos_cinereus|Vombatus_ursinus	25	42	.	.
+-	Dasyurus_hallucatus|Phascogale_tapoatafa	13	26	.	.
+-	Tachyglossus_aculeatus|Zaglossus_bruijni	5	20	.	.

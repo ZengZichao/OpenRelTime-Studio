@@ -1,0 +1,6 @@
+{
+  "analysis_failed": "Analysis failed: %s",
+  "file_not_readable": "File does not exist or cannot be read: {error}",
+  "node_or_taxon_missing": "Node or taxon does not exist: {error}",
+  "invalid_input": "Invalid input: {error}"
+}

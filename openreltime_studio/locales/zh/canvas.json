@@ -1,0 +1,13 @@
+{
+  "empty_hint": "载入一棵树（或打开内置示例）后，着色的时间树会显示在这里",
+  "divergence_time_axis": "分歧时间",
+  "node_time_axis": "节点时间",
+  "density_axis": "密度",
+  "node_label": "节点 {node_id}",
+  "node_label_with_tips": "节点 {node_id}（{tips}）",
+  "hover_time": "时间 {time}",
+  "hover_rate": "速率 {rate}",
+  "unit_mya": "百万年",
+  "axis_time": "时间（Mya）",
+  "axis_relative": "相对时间"
+}
