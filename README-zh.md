@@ -2,6 +2,8 @@
 
 **语言：中文** · [English](README.md)
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23053174.svg)](https://doi.org/10.5281/zenodo.23053174)
+
 **面向相对速率分子测年的原生桌面软件。**
 OpenRelTime Studio 把 [OpenRelTime](https://github.com/ZengZichao/OpenRelTime)
 引擎包装成 PySide6 图形界面，让不写代码的研究者也能完成 RRF 测年、在树上点选
@@ -145,7 +147,11 @@ OpenRelTime Studio 是一个**依赖** OpenRelTime 引擎的独立项目，引�
 
 以 GPL-3.0-or-later 发布，与引擎一致。见
 [`LICENSE`](LICENSE)、[`THIRD-PARTY-NOTICES-zh.md`](THIRD-PARTY-NOTICES-zh.md)
-（[English](THIRD-PARTY-NOTICES.md)）与 [`CITATION.cff`](CITATION.cff)。
+（[English](THIRD-PARTY-NOTICES.md)）与 [`CITATION.cff`](CITATION.cff)。v0.1.0 已在
+Zenodo 存档，版本 DOI 为
+[10.5281/zenodo.23053175](https://doi.org/10.5281/zenodo.23053175)；跨版本引用软件
+整体可用 concept DOI
+[10.5281/zenodo.23053174](https://doi.org/10.5281/zenodo.23053174)。
 
 ## 作者
 
