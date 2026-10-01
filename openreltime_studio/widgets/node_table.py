@@ -97,9 +97,13 @@ class NodeTable(QTableWidget):
                         text = str(val)
                     item = QTableWidgetItem(text)
                     if text and _is_numeric(text):
-                        item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                        item.setTextAlignment(
+                            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+                        )
                     else:
-                        item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+                        item.setTextAlignment(
+                            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+                        )
                     self.setItem(i, j, item)
             self.resizeColumnsToContents()
         finally:

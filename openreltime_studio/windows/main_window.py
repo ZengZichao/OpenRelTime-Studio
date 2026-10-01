@@ -696,6 +696,9 @@ class MainWindow(QMainWindow):
         """示例树读完后补上演示校正点：与手动「从 TSV 加载」走同一条路径。"""
         from openreltime_studio.adapters import openreltime_adapter as _adapter
 
+        tree = self.tree
+        if tree is None:  # pragma: no cover - 只在树读取回调里进入，树必已就绪
+            return
         try:
             cal_path = example_files()["calibrations"]
             self.calibration_editor.load_from_file(cal_path)
@@ -704,12 +707,12 @@ class MainWindow(QMainWindow):
             self._show_status("status.example_cals_failed")
             return
         valid, _problems = _adapter.validate_calibrations(
-            self.tree, self.calibration_editor.calibrations
+            tree, self.calibration_editor.calibrations
         )
         self.calibration_editor.replace_calibrations(valid)
         self._show_status(
             "status.example_ready",
-            tips=len(self.tree.tips()),
+            tips=len(tree.tips()),
             cals=len(self.calibration_editor.calibrations),
         )
 
@@ -746,10 +749,13 @@ class MainWindow(QMainWindow):
         # 手动格式覆盖只对当前这一次读取生效：换树后重新按扩展名检测
         self._fmt_manual = False
 
+        tree_path = self.tree_path
+        # 只会由 _read_tree_file 的完成回调进入，路径必然已记录
+        assert tree_path is not None
         info = adapter.tree_summary(tree)
         self._show_status(
             "status.tree_loaded",
-            name=Path(self.tree_path).name,
+            name=Path(tree_path).name,
             tips=info["n_tips"],
             internal=info["n_internal"],
             tree_kind=i18n.t(
@@ -979,6 +985,8 @@ class MainWindow(QMainWindow):
             self._show_status("status.cal_failed")
             return
 
+        # worker 约定：err 为空时 result 必有值
+        assert result is not None
         self.calibrated_result = result
         self.ci_result = None
 
@@ -1053,6 +1061,8 @@ class MainWindow(QMainWindow):
             self._show_status("status.ci_failed")
             return
 
+        # worker 约定：err 为空时 result 必有值
+        assert result is not None
         self.ci_result = result
 
         # 绘制 CI 误差棒图
@@ -1095,6 +1105,8 @@ class MainWindow(QMainWindow):
             self._show_status("status.corrtest_failed")
             return
 
+        # worker 约定：err 为空时 result 必有值
+        assert result is not None
         self.corrtest_result = result
         info = adapter.result_summary(result)
         params = {
@@ -1177,7 +1189,7 @@ class MainWindow(QMainWindow):
             "rho": f"{info.get('sampling_frac', 0):.4g}",
         }
         self._set_table_summary("status.ddbd_summary", **params)
-        self._show_status("status.ddbd_done", **params)
+        self._show_status("status.ddbd_done", **params)  # type: ignore[arg-type]  # params 键名不会覆盖 timeout
         self._update_cli_ddbd()
 
         QMessageBox.information(

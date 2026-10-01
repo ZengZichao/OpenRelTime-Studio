@@ -52,7 +52,7 @@ _LOCALE_ROOT = Path(__file__).resolve().parent / "locales"
 
 _catalogs: dict[str, dict[str, str]] = {}
 _language = DEFAULT_LANGUAGE
-_listeners: list[Callable[[str], None]] = []
+_listeners: list["_Listener"] = []
 _bindings: list[tuple[weakref.ReferenceType, str, str, dict]] = []
 _seen_missing: set[str] = set()
 
@@ -175,6 +175,22 @@ def on_language_change(callback: Callable[[str], None]) -> Callable[[], None]:
     return unregister
 
 
+def _bind(
+    widget: object,
+    setter: str,
+    key: str,
+    params: dict[str, object],
+    *,
+    apply_now: bool = True,
+) -> None:
+    """登记绑定本体；``params`` 以普通字典传递，避免 **kwargs 解包歧义。"""
+    ref = weakref.ref(widget)
+    entry = (ref, setter, key, params)
+    _bindings.append(entry)
+    if apply_now:
+        _apply(entry)
+
+
 def bind(
     widget: object,
     setter: str,
@@ -188,40 +204,36 @@ def bind(
     ``setter`` 是控件上的方法名（如 ``"setText"``）。控件被销毁后绑定自动
     失效（弱引用），因此反复重建对话框不会累积回调。
     """
-    ref = weakref.ref(widget)
-    entry = (ref, setter, key, params)
-    _bindings.append(entry)
-    if apply_now:
-        _apply(entry)
+    _bind(widget, setter, key, params, apply_now=apply_now)
 
 
-def bind_text(widget, key: str, **params: object) -> None:
+def bind_text(widget: object, key: str, **params: object) -> None:
     """绑定可见文本（按钮、标签、菜单项、分组框标题）。"""
-    bind(widget, "setText", key, **params)
+    _bind(widget, "setText", key, params)
 
 
-def bind_tooltip(widget, key: str, **params: object) -> None:
+def bind_tooltip(widget: object, key: str, **params: object) -> None:
     """绑定悬停提示。"""
-    bind(widget, "setToolTip", key, **params)
+    _bind(widget, "setToolTip", key, params)
 
 
-def bind_placeholder(widget, key: str, **params: object) -> None:
+def bind_placeholder(widget: object, key: str, **params: object) -> None:
     """绑定输入框占位文本。"""
-    bind(widget, "setPlaceholderText", key, **params)
+    _bind(widget, "setPlaceholderText", key, params)
 
 
 def retranslate() -> None:
     """重放全部绑定并通知监听者（供外部主动刷新动态文本）。"""
     alive = []
-    for entry in _bindings:
-        if _apply(entry):
-            alive.append(entry)
+    for binding in _bindings:
+        if _apply(binding):
+            alive.append(binding)
     _bindings[:] = alive
     live = []
-    for entry in list(_listeners):
-        if entry.alive():
-            entry(_language)
-            live.append(entry)
+    for listener in list(_listeners):
+        if listener.alive():
+            listener(_language)
+            live.append(listener)
     _listeners[:] = live
 
 

@@ -64,7 +64,9 @@ def build_icns(app: QApplication) -> Path | None:
 
 
 def main() -> None:
-    app = QApplication.instance() or QApplication([])
+    app = QApplication.instance()
+    if not isinstance(app, QApplication):
+        app = QApplication([])
     build_png(app)
     build_icns(app)
 

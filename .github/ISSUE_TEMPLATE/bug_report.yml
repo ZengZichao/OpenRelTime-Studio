@@ -1,0 +1,63 @@
+name: Bug report / 问题报告
+description: Report something broken in OpenRelTime Studio / 报告 Studio 的问题
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem.
+        感谢反馈。请先确认你用的是最新 Release；引擎（OpenRelTime）本身的问题请到
+        https://github.com/ZengZichao/OpenRelTime/issues 反馈。
+        安全类问题请勿公开发：请走 Security ▸ Report a vulnerability（见 SECURITY.md）。
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened? / 发生了什么
+      description: A clear description of the wrong behavior, including what you expected instead. / 请描述错误行为与预期行为。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      description: |
+        Minimal tree file / calibration file that triggers it, plus the exact clicks.
+        请给出能触发的最小树文件或校正点文件，以及具体操作步骤。
+      placeholder: |
+        1. File ▸ Open tree file…
+        2. …
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install Studio? / 安装方式
+      options:
+        - macOS .app bundle from a Release / Release 里的 macOS 应用包
+        - pip install from source / 源码 pip 安装
+        - other / 其他
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system / 操作系统
+      options:
+        - macOS (Apple silicon)
+        - macOS (Intel)
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Studio & engine version / 版本
+      description: e.g. Studio v0.1.0, openreltime v0.1.0 / 例如 Studio v0.1.0、openreltime v0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots / 日志或截图
+      description: The in-app warning panel content or console output. / 应用内警告面板或控制台输出。
