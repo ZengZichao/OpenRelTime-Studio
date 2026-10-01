@@ -1,0 +1,32 @@
+name: Feature request / 功能建议
+description: Suggest an idea for OpenRelTime Studio / 建议 Studio 的新能力
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas are welcome — especially ones that fit Studio's scope: a native
+        desktop front-end around the engine's public API, with no algorithms
+        of its own. Engine-side ideas belong in
+        https://github.com/ZengZichao/OpenRelTime/issues.
+        欢迎建议，尤其是贴合 Studio 定位（围绕引擎公开 Python API 的原生桌面
+        前端）的想法；引擎算法侧的建议请提给引擎仓库。
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem / 场景与问题
+      description: What were you trying to do, and what got in the way? / 你想完成什么，卡在哪里？
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution / 期望的方案
+      description: What would the UI do? Where would it live (menu, tab, panel)? / 期望的交互方式与入口位置。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered / 备选方案
+      description: Other ways you considered, including engine command-line workarounds. / 你考虑过的其他做法（含引擎命令行的替代路径）。

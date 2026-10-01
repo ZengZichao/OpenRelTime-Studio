@@ -73,9 +73,9 @@ def pixmap_from_svg(size: int):
     if not renderer.isValid():
         return None
     pm = QPixmap(size, size)
-    pm.fill(Qt.transparent)
+    pm.fill(Qt.GlobalColor.transparent)
     painter = QPainter(pm)
-    painter.setRenderHint(QPainter.Antialiasing)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
     renderer.render(painter, QRectF(0, 0, size, size))
     painter.end()
     return pm
@@ -83,21 +83,25 @@ def pixmap_from_svg(size: int):
 
 def _painted_pixmap(size: int):
     """QtSvg 不可用时的兜底：按简化变体的几何手工绘制。"""
-    from PySide6.QtCore import QRectF, Qt
+    from PySide6.QtCore import QLineF, QPointF, QRectF, Qt
     from PySide6.QtGui import QColor, QPainter, QPen, QPixmap
 
     pm = QPixmap(size, size)
-    pm.fill(Qt.transparent)
+    pm.fill(Qt.GlobalColor.transparent)
     painter = QPainter(pm)
-    painter.setRenderHint(QPainter.Antialiasing)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
     s = size / 256.0
 
-    painter.setPen(Qt.NoPen)
+    painter.setPen(Qt.PenStyle.NoPen)
     painter.setBrush(QColor(_ACCENT))
     painter.drawRoundedRect(QRectF(8 * s, 8 * s, 240 * s, 240 * s), 58 * s, 58 * s)
 
     pen = QPen(
-        QColor("#ffffff"), max(1.0, 22 * s), Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin
+        QColor("#ffffff"),
+        max(1.0, 22 * s),
+        Qt.PenStyle.SolidLine,
+        Qt.PenCapStyle.RoundCap,
+        Qt.PenJoinStyle.RoundJoin,
     )
     painter.setPen(pen)
     for x0, y0, x1, y1 in (
@@ -108,16 +112,16 @@ def _painted_pixmap(size: int):
         (134, 128, 196, 128),
         (134, 128, 134, 188),
     ):
-        painter.drawLine(x0 * s, y0 * s, x1 * s, y1 * s)
+        painter.drawLine(QLineF(QPointF(x0 * s, y0 * s), QPointF(x1 * s, y1 * s)))
 
-    painter.setPen(Qt.NoPen)
+    painter.setPen(Qt.PenStyle.NoPen)
     painter.setBrush(QColor("#ffffff"))
     for cx, cy in ((184, 68), (196, 128)):
         r = 17 * s
         painter.drawEllipse(QRectF(cx * s - r, cy * s - r, 2 * r, 2 * r))
 
     painter.setPen(QPen(QColor(_MARK), max(1.0, 12 * s)))
-    painter.setBrush(Qt.NoBrush)
+    painter.setBrush(Qt.BrushStyle.NoBrush)
     r = 26 * s
     painter.drawEllipse(QRectF(134 * s - r, 188 * s - r, 2 * r, 2 * r))
     painter.end()

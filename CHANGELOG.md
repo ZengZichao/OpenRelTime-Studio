@@ -6,6 +6,26 @@ All notable changes to **OpenRelTime Studio** are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), the versioning
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Repository maintenance scaffolding: a security policy (`SECURITY.md`),
+  contribution guide (`CONTRIBUTING.md`), `CODEOWNERS`, issue and
+  pull-request templates, and a tag-triggered release workflow
+  (`.github/workflows/release.yml`) that builds the sdist/wheel and the
+  frozen macOS `.app` bundle and attaches them to the release named after
+  the tag.
+- CI now type-checks with mypy, reports test coverage, caches pip downloads
+  and reads the engine pin from a single `ENGINE_REF` variable shared in
+  spirit with the release workflow (see the release checklist in
+  `CONTRIBUTING.md`).
+
+### Changed
+
+- Repository settings: squash-only merges onto `main`, automatic deletion of
+  merged head branches, and required status checks protecting `main`.
+
 ## 0.1.0 — 2026-09-29
 
 OpenRelTime Studio is a native desktop application (PySide6, no browser

@@ -1,0 +1,122 @@
+name: Release
+
+# Tag-driven publishing: pushing vX.Y.Z builds the sdist/wheel and the frozen
+# macOS .app bundle, then attaches both to a release named after the tag.
+# The release checklist (version bumps, engine pin sync) lives in
+# CONTRIBUTING.md.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # Keep in sync with ci.yml.  Bump both when the engine publishes a new tag.
+  ENGINE_REF: v0.1.0
+
+jobs:
+  build:
+    name: Build sdist and wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Build and inspect distributions
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build
+          twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: distributions
+          path: dist/*
+          if-no-files-found: error
+
+  macos-bundle:
+    name: Build macOS bundle
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install the engine, Studio and PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "openreltime[plot] @ git+https://github.com/ZengZichao/OpenRelTime.git@${ENGINE_REF}"
+          python -m pip install -e .
+          python -m pip install pyinstaller
+
+      - name: Stamp the bundle version from the tag
+        # The spec hardcodes CFBundleShortVersionString; rewrite it so the
+        # frozen bundle reports the tag it was built from, not the version
+        # at the time the spec was last touched.
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}" python - <<'PY'
+          import os
+
+          version = os.environ["VERSION"]
+          path = "openreltime_studio/resources/OpenRelTimeStudio.spec"
+          text = open(path, encoding="utf-8").read()
+          old = 'CFBundleShortVersionString": "0.1.0"'
+          assert old in text, "spec no longer carries a literal version to stamp"
+          text = text.replace(old, f'CFBundleShortVersionString": "{version}"')
+          open(path, "w", encoding="utf-8").write(text)
+          print(f"stamped CFBundleShortVersionString={version}")
+          PY
+
+      - name: Build the .app bundle
+        run: pyinstaller openreltime_studio/resources/OpenRelTimeStudio.spec
+
+      - name: Zip the bundle
+        run: |
+          cd dist
+          zip -qry "OpenRelTimeStudio-${GITHUB_REF_NAME}-macOS-arm64.zip" OpenRelTimeStudio.app
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-bundle
+          path: dist/*.zip
+          if-no-files-found: error
+
+  publish:
+    name: Attach assets to the release
+    needs: [build, macos-bundle]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create the release if missing and attach assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir upload
+          find artifacts -type f -exec cp {} upload/ \;
+          ls -la upload
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" \
+                 --title "OpenRelTime Studio $GITHUB_REF_NAME" \
+                 --generate-notes
+          gh release upload "$GITHUB_REF_NAME" upload/* --clobber

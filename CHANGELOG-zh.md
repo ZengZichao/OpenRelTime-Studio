@@ -6,6 +6,23 @@
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)，版本号遵循
 [语义化版本 Semantic Versioning](https://semver.org/spec/v2.0.0.html)。
 
+## 未发布
+
+### 新增
+
+- 仓库维护配套：安全策略（`SECURITY.md`）、贡献指南
+  （`CONTRIBUTING.md`）、`CODEOWNERS`、issue 与 PR 模板，以及由 tag 触发的
+  发布工作流（`.github/workflows/release.yml`）——自动构建 sdist/wheel 与
+  冻结的 macOS `.app` 包并挂到同名 Release。
+- CI 新增 mypy 类型检查与测试覆盖率输出，开启 pip 下载缓存，并把引擎版本
+  钉子收敛为各工作流里的单一 `ENGINE_REF` 变量（与 release 工作流联动，
+  见 `CONTRIBUTING.md` 的发版清单）。
+
+### 变更
+
+- 仓库设置：`main` 仅允许 squash 合入、合并后自动删除分支，并以必需状态
+  检查保护 `main`。
+
 ## 0.1.0 — 2026-09-29
 
 OpenRelTime Studio 是一个用于相对速率分子测年的原生桌面应用程序（基于

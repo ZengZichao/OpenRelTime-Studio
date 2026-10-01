@@ -90,6 +90,7 @@ def test_example_runs_the_whole_pipeline() -> None:
     assert 50.0 < root_age < 400.0, f"示例根龄不合理：{root_age}"
     for cal in cals:
         node = adapter.resolve_calibration_target(tree, cal)
+        assert node is not None
         age = calibrated.times[node.node_id]
         assert cal.min_bound - 1e-6 <= age <= cal.max_bound + 1e-6, (
             f"示例校正 {sorted(cal.taxon_set)} 的边界 {cal.min_bound}-{cal.max_bound} "

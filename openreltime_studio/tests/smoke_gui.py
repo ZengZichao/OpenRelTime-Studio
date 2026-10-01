@@ -70,6 +70,7 @@ def _patch_dialogs():
 
 def wait_for(cond, timeout_ms: int = 30000) -> bool:
     app = QApplication.instance()
+    assert app is not None, "wait_for 需要已创建 QApplication"
     waited = 0
     while waited < timeout_ms:
         app.processEvents()
@@ -175,12 +176,14 @@ def main() -> int:
 
     win.run_calibrate()
     check("校正完成", wait_for(lambda: win.calibrated_result is not None))
+    calibrated = win.calibrated_result
+    assert calibrated is not None
     grab("04_calibrated.png")
-    n_cals = len(win.calibrated_result.calibrations)
+    n_cals = len(calibrated.calibrations)
     check("画布上有校正标记", len(win.canvas.calibration_marks) >= 1)
     check("标记集合与结果一致",
           win.canvas.calibration_marks
-          == {c.node_id for c in win.calibrated_result.calibrations})
+          == {c.node_id for c in calibrated.calibrations})
     check("标记确实画在图上", drawn_marks(win) == n_cals)
     check("CI 按钮已启用", win.btn_run_ci.isEnabled())
 
@@ -217,7 +220,8 @@ def main() -> int:
     win.calibrated_result = None
     win.run_calibrate()
     worker = win._cal_worker
-    check("取消旗标初始未置位", worker is not None and not worker.cancel_requested)
+    assert worker is not None
+    check("取消旗标初始未置位", not worker.cancel_requested)
     # 不跑事件循环，因此 done 信号仍在队列里：等价于用户在对话框点「取消」
     worker.cancel()
     check("取消旗标已置位", worker.cancel_requested)
@@ -225,7 +229,9 @@ def main() -> int:
     check("取消后校正结果被丢弃", win.calibrated_result is None)
     win.run_calibrate()
     check("重新校正完成", wait_for(lambda: win.calibrated_result is not None))
-    check("重跑后标记仍在", drawn_marks(win) == len(win.calibrated_result.calibrations))
+    rerun = win.calibrated_result
+    assert rerun is not None
+    check("重跑后标记仍在", drawn_marks(win) == len(rerun.calibrations))
 
     print("== 5. ddBD（已有 RRF 结果）==")
     win.run_ddbd()
@@ -283,9 +289,10 @@ def main() -> int:
     check("calibrate 在校前一步于 ci", stages.index("calibrate") < stages.index("ci"))
     check("校正文件走导出目录里的相对名",
           flag(steps["calibrate"], "-c") == "calibrations.tsv")
+    cal_input = flag(steps["calibrate"], "-i")
+    assert cal_input is not None
     check("树路径为绝对路径",
-          Path(flag(steps["calibrate"], "-i")).is_absolute()
-          and Path(flag(steps["calibrate"], "-i")).exists())
+          Path(cal_input).is_absolute() and Path(cal_input).exists())
     for stage in ("rates-times", "calibrate", "corrtest", "ddbd"):
         check(f"{stage} 带上读树设置",
               flag(steps[stage], "--fmt") == win.input_fmt
@@ -309,7 +316,9 @@ def main() -> int:
     check("手动改格式后不再被扩展名覆盖", win.input_fmt == "nexus")
     check("改格式触发按新格式重读", wait_for(lambda: win.tree is not None))
     check("重读已结束", wait_for(lambda: not win._active_workers))
-    check("新树已载入", win.tree.n_tips() == 274)
+    reloaded = win.tree
+    assert reloaded is not None
+    check("新树已载入", reloaded.n_tips() == 274)
     grab("09_nexus_noext.png")
 
     print("== 11. 重新加载同一树（结果应失效）==")
