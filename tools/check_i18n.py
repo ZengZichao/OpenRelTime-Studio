@@ -123,7 +123,9 @@ def main(argv: list[str]) -> int:
     for path in targets:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         checked.append((path, tree))
-        rel = str(path.relative_to(PKG))
+        # as_posix(): the allow-lists below use forward slashes, and a Windows
+        # relative path (backslashes) would otherwise miss every exemption.
+        rel = path.relative_to(PKG).as_posix()
         allow_cjk = rel in CJK_ALLOWED
         for value, lineno in literals(tree):
             if _CJK.search(value) and not allow_cjk:
