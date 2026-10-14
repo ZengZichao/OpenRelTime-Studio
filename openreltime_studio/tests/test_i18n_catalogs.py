@@ -142,7 +142,9 @@ def test_catalog_directory_exists(lang: str) -> None:
 def test_no_hardcoded_cjk_literals() -> None:
     offenders = []
     for src in _source_files():
-        if str(src.relative_to(PKG_ROOT)) in CJK_ALLOWED:
+        # as_posix(): the allow-lists use forward slashes; on Windows a
+        # backslash relative path would miss every exemption.
+        if src.relative_to(PKG_ROOT).as_posix() in CJK_ALLOWED:
             continue
         tree = ast.parse(src.read_text(encoding="utf-8"), filename=str(src))
         for value, lineno in _string_literals(tree, skip_docstrings=True):
@@ -154,7 +156,7 @@ def test_no_hardcoded_cjk_literals() -> None:
 def test_no_hardcoded_colors() -> None:
     offenders = []
     for src in _source_files():
-        rel = str(src.relative_to(PKG_ROOT))
+        rel = src.relative_to(PKG_ROOT).as_posix()
         if rel in COLOR_ALLOWED or rel.startswith("resources/"):
             continue
         tree = ast.parse(src.read_text(encoding="utf-8"), filename=str(src))
