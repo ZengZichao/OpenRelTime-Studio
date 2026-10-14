@@ -16,6 +16,7 @@ to its counterpart at the top. The project root is paired the same way:
 | | English | 中文 | Content / 内容 |
 | --- | --- | --- | --- |
 | GUI user guide | [usage-en.md](usage-en.md) | [usage-zh.md](usage-zh.md) | Installation, launching, the three-pane interface, live language and theme switching, the full RRF → calibration → CI → CorrTest → ddBD workflow with every parameter and its default, the node table and export inventory, the engine-warnings panel and cancellation, troubleshooting, and developer notes 安装与启动、三窗格界面、语言与主题即时切换、RRF → 校正 → CI → CorrTest → ddBD 完整流程及全部参数与默认值、节点表与导出清单、引擎警告面板与取消、故障排查，以及开发者须知 |
+| Test-suite inventory | [testing.md](testing.md) | [testing-zh.md](testing-zh.md) | What each of the seven test files covers and how many tests each holds, how collection is gated per test on the Qt binding and the engine, the measured numbers on machines with and without those dependencies, and how to run the manual off-screen smoke script 七个测试文件各自覆盖什么、各有多少用例，收集如何按用例粒度门控，有无依赖时的实测数字，以及手工离屏冒烟脚本的用法 |
 
 Both documents name on-screen items exactly as the interface does: the English
 manual quotes the wording of `openreltime_studio/locales/en/`, the Chinese
@@ -36,7 +37,7 @@ linked because this index sits inside `docs/`.
 | | English | 中文 | Content / 内容 |
 | --- | --- | --- | --- |
 | Front page | `README.md` | `README-zh.md` | What the application does, the feature table, the language × theme gallery, installation, the built-in example, and the relationship to the engine 软件功能、特性表、语言 × 主题界面预览、安装方式、内置示例，以及与引擎的关系 |
-| Release history | `CHANGELOG.md` | `CHANGELOG-zh.md` | The 0.1.0 release, described by what the application does today 0.1.0 版本：按软件当前能力逐条说明 |
+| Release history | `CHANGELOG.md` | `CHANGELOG-zh.md` | The 0.1.0 release and the 0.1.1 working tree, described by what the application does today 0.1.0 版本与 0.1.1 工作树：按软件当前能力逐条说明 |
 | Third-party notices | `THIRD-PARTY-NOTICES.md` | `THIRD-PARTY-NOTICES-zh.md` | The licences of the libraries Studio links against, the icon, the fonts and the trademarks Studio 所链接第三方库的许可、图标、字体与商标声明 |
 
 ## Screenshots / 界面截图
@@ -68,7 +69,7 @@ root-orientation views, the bundled example, and the application icon source.
 | --- | --- |
 | Researcher running a dating analysis 做定年分析的研究者 | User guide §2–§7（安装、界面、操作流程、导出） |
 | Reviewer or collaborator checking a figure 复核结果或图表 | User guide §7.4（等效 CLI 与可复现性）+ engine methods documentation 引擎方法文档 |
-| Contributor working on the interface 参与界面开发的贡献者 | User guide §10（测试套件、翻译门禁、新增文案） |
+| Contributor working on the interface 参与界面开发的贡献者 | User guide §10（测试套件、翻译门禁、新增文案）+ [testing.md](testing.md) / [testing-zh.md](testing-zh.md)（逐个文件的用例数与门控） |
 | Packager 需要出独立安装包的人 | User guide §2.5 and §10.7 |
 
 ## Not in this folder / 不在本目录的内容

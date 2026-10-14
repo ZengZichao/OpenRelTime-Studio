@@ -3,6 +3,17 @@
 内置示例必须满足两件事：**真的随包发行**（安装版 / 冻结的 .app 里也在包内，
 不依赖仓库路径），而且**开箱可跑通**（树能读、校正点是合法单系群、整条流水线
 出得来合理结果）。图标则要求主图与小尺寸变体都在包内、且按尺寸正确挑选。
+
+收集粒度：本文件是**混合**的，所以门控逐个用例给，不在模块
+顶部 import Qt 或适配层，否则没装 PySide6 的机器上连「示例是否随包发行」这条
+打包断言都跑不到。
+
+* 纯资源/打包检查（示例文件在包内、README 声明、图标 SVG、``self_check``）：
+  不标任何门控，任何环境都跑。
+* 真的调用引擎 API 的（读树、校验校正点、跑流水线）：``requires_engine``。
+* 要构造主窗口或 QPixmap 的：``requires_qt`` 与 ``requires_engine`` 两个都标
+  —— ``MainWindow`` 经适配层依赖引擎，只标 Qt 会在「有 Qt、缺引擎」时炸成
+  收集错误。
 """
 
 from __future__ import annotations
@@ -14,7 +25,6 @@ from pathlib import Path
 import pytest
 
 from openreltime_studio import examples, i18n
-from openreltime_studio.adapters import openreltime_adapter as adapter
 from openreltime_studio.appicon import (
     ICON_SIZES,
     SYMBOLIC_MAX_PX,
@@ -24,8 +34,6 @@ from openreltime_studio.appicon import (
     svg_source,
     symbolic_svg_path,
 )
-from openreltime_studio.widgets.tree_canvas import TreeCanvas
-from openreltime_studio.windows.main_window import MainWindow
 
 PKG_DIR = Path(examples.__file__).resolve().parent
 
@@ -60,7 +68,10 @@ def test_example_file_names_are_stable() -> None:
     assert examples.EXAMPLE_CALIBRATIONS_FILENAME == "example_calibrations.tsv"
 
 
+@pytest.mark.requires_engine
 def test_example_tree_is_small_but_nontrivial() -> None:
+    from openreltime_studio.adapters import openreltime_adapter as adapter
+
     tree = adapter.read_tree(examples.example_tree_path())
     tips = tree.tips()
     assert 10 <= len(tips) <= 40, "示例树要小到能一眼看清，又要大到有结构可看"
@@ -68,7 +79,10 @@ def test_example_tree_is_small_but_nontrivial() -> None:
     assert tree.is_binary(), "示例树必须是二分树，否则载入即报错"
 
 
+@pytest.mark.requires_engine
 def test_example_calibrations_are_valid_complete_clades() -> None:
+    from openreltime_studio.adapters import openreltime_adapter as adapter
+
     tree = adapter.read_tree(examples.example_tree_path())
     cals = adapter.load_calibrations(examples.example_calibrations_path())
     assert len(cals) >= 2, "至少两条校正，才能演示边界与冲突检查"
@@ -80,8 +94,11 @@ def test_example_calibrations_are_valid_complete_clades() -> None:
         assert cal.min_bound < cal.max_bound
 
 
+@pytest.mark.requires_engine
 def test_example_runs_the_whole_pipeline() -> None:
     """载入 → RRF → 校正 → CI 全跑通，且根龄落在演示边界允许的区间内。"""
+    from openreltime_studio.adapters import openreltime_adapter as adapter
+
     tree = adapter.read_tree(examples.example_tree_path())
     times = adapter.run_rrf_rates_times(tree)
     cals = adapter.load_calibrations(examples.example_calibrations_path())
@@ -110,7 +127,11 @@ def test_example_readme_declares_the_disclaimer() -> None:
 # ---- 内置示例：界面入口 ---------------------------------------------------
 
 
+@pytest.mark.requires_qt
+@pytest.mark.requires_engine  # MainWindow 经适配层依赖引擎
 def test_button_and_menu_load_the_example(qapp) -> None:
+    from openreltime_studio.windows.main_window import MainWindow
+
     win = MainWindow()
     win.show()
     try:
@@ -137,8 +158,11 @@ def test_button_and_menu_load_the_example(qapp) -> None:
         win.close()
 
 
+@pytest.mark.requires_qt
+@pytest.mark.requires_engine  # MainWindow 经适配层依赖引擎
 def test_example_button_text_follows_language(qapp) -> None:
     from openreltime_studio import i18n
+    from openreltime_studio.windows.main_window import MainWindow
 
     win = MainWindow()
     try:
@@ -151,10 +175,13 @@ def test_example_button_text_follows_language(qapp) -> None:
         win.close()
 
 
+@pytest.mark.requires_qt
+@pytest.mark.requires_engine  # MainWindow 经适配层依赖引擎
 def test_missing_example_reports_instead_of_crashing(qapp, monkeypatch) -> None:
     from PySide6.QtWidgets import QMessageBox
 
     from openreltime_studio.windows import main_window as mw
+    from openreltime_studio.windows.main_window import MainWindow
 
     calls: list[tuple[str, str]] = []
 
@@ -205,18 +232,21 @@ def test_primary_icon_declares_rate_colours_and_calibration_mark() -> None:
     assert "#f5c518" in text, "主图应保留琥珀色校正环这一识别元素"
 
 
+@pytest.mark.requires_qt
 @pytest.mark.parametrize("size", ICON_SIZES)
 def test_every_icon_size_renders(qapp, size) -> None:
     pm = pixmap_from_svg(size)
     assert pm is None or (pm.width() == size and pm.height() == size)
 
 
+@pytest.mark.requires_qt
 def test_app_icon_carries_multiple_sizes(qapp) -> None:
     icon = app_icon()
     assert not icon.isNull()
     assert len({s.width() for s in icon.availableSizes()}) >= 5
 
 
+@pytest.mark.requires_qt
 def test_painter_fallback_draws_something(qapp) -> None:
     from openreltime_studio.appicon import _painted_pixmap
 
@@ -232,8 +262,12 @@ def test_painter_fallback_draws_something(qapp) -> None:
     assert opaque > 100, "兜底绘制几乎是空的"
 
 
+@pytest.mark.requires_qt
+@pytest.mark.requires_engine  # tree_canvas 经适配层依赖引擎
 def test_canvas_still_reads_icon_paths_without_qt_state() -> None:
     """图标路径解析不应依赖 QApplication（便于单测与打包脚本）。"""
+    from openreltime_studio.widgets.tree_canvas import TreeCanvas
+
     assert TreeCanvas.__name__ == "TreeCanvas"
     assert symbolic_svg_path().suffix == ".svg"
 

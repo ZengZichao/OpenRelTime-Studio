@@ -3,6 +3,12 @@
 与 ``test_i18n_catalogs.py`` 的静态检查互补：这里真的构造主窗口，切语言、
 切主题，验证界面文本与配色**当场**改变（不重启进程），并确认图标确实来自
 包内 SVG。
+
+收集粒度（取代旧的整模块 ``importorskip("PySide6.QtWidgets")``）：本文件是
+**混合**的 —— 三个纯常量/纯文件读取的用例（默认语言与主题、SVG 图标源、
+缺键回退）既不碰 Qt 也不碰引擎，任何机器上都该跑；其余构造主窗口或
+``QApplication`` 的用例逐个标 ``requires_qt``，用到主窗口的再加
+``requires_engine``。
 """
 
 from __future__ import annotations
@@ -13,8 +19,6 @@ import xml.etree.ElementTree as ET
 import pytest
 
 from openreltime_studio import i18n, themes
-
-QApplication = pytest.importorskip("PySide6.QtWidgets").QApplication
 
 
 @pytest.fixture
@@ -48,6 +52,8 @@ def test_default_language_and_theme_are_english_light() -> None:
     assert set(themes.THEMES) == {"light", "dark"}
 
 
+@pytest.mark.requires_qt
+@pytest.mark.requires_engine  # 主窗口经适配层依赖引擎
 def test_group_box_titles_switch_without_restart(main_window) -> None:
     en = titles(main_window)
     i18n.set_language("zh", persist=False)
@@ -59,6 +65,8 @@ def test_group_box_titles_switch_without_restart(main_window) -> None:
     i18n.set_language("en", persist=False)
 
 
+@pytest.mark.requires_qt
+@pytest.mark.requires_engine  # 主窗口经适配层依赖引擎
 def test_tab_labels_and_status_bar_follow_language(main_window) -> None:
     tabs = [
         main_window.analysis_tabs.tabText(i) for i in range(main_window.analysis_tabs.count())
@@ -74,6 +82,8 @@ def test_tab_labels_and_status_bar_follow_language(main_window) -> None:
     i18n.set_language("en", persist=False)
 
 
+@pytest.mark.requires_qt
+@pytest.mark.requires_engine  # 主窗口经适配层依赖引擎
 def test_view_menu_exposes_language_and_theme_choices(main_window) -> None:
     from PySide6.QtGui import QAction
 
@@ -82,6 +92,8 @@ def test_view_menu_exposes_language_and_theme_choices(main_window) -> None:
     assert "Light" in texts and "Dark" in texts
 
 
+@pytest.mark.requires_qt
+@pytest.mark.requires_engine  # 主窗口经适配层依赖引擎
 def test_triggering_language_action_changes_catalog(main_window) -> None:
     from PySide6.QtGui import QAction
 
@@ -96,6 +108,7 @@ def test_triggering_language_action_changes_catalog(main_window) -> None:
     assert en_action.isChecked() and not zh_action.isChecked()
 
 
+@pytest.mark.requires_qt
 def test_theme_switch_replaces_stylesheet_and_tokens(app) -> None:
     light_qss = themes.stylesheet()
     light = themes.tokens()
@@ -111,6 +124,7 @@ def test_theme_switch_replaces_stylesheet_and_tokens(app) -> None:
     assert app.styleSheet() == light_qss
 
 
+@pytest.mark.requires_qt
 def test_matplotlib_params_follow_theme(app) -> None:
     themes.set_theme("light", persist=False, notify=False)
     light_face = themes.mpl_rc_params()["figure.facecolor"]
@@ -121,6 +135,8 @@ def test_matplotlib_params_follow_theme(app) -> None:
     themes.set_theme("light", persist=False, notify=False)
 
 
+@pytest.mark.requires_qt
+@pytest.mark.requires_engine  # 主窗口经适配层依赖引擎
 def test_window_constructs_in_all_four_combinations(app) -> None:
     from openreltime_studio.windows.main_window import MainWindow
 
@@ -136,6 +152,7 @@ def test_window_constructs_in_all_four_combinations(app) -> None:
             win.close()
 
 
+@pytest.mark.requires_qt
 def test_preferences_round_trip_through_settings(app) -> None:
     from PySide6.QtCore import QSettings
 
@@ -163,6 +180,7 @@ def test_svg_icon_is_valid_vector_source() -> None:
     assert themes.icon_svg_path().is_file()
 
 
+@pytest.mark.requires_qt
 def test_app_icon_is_built_from_svg_with_multiple_sizes(app) -> None:
     from openreltime_studio.appicon import ICON_SIZES, app_icon
 
@@ -174,6 +192,8 @@ def test_app_icon_is_built_from_svg_with_multiple_sizes(app) -> None:
     assert len(ICON_SIZES) >= 5
 
 
+@pytest.mark.requires_qt
+@pytest.mark.requires_engine  # 主窗口经适配层依赖引擎
 def test_view_menu_offers_four_root_positions(main_window) -> None:
     from PySide6.QtGui import QAction
 
@@ -184,6 +204,8 @@ def test_view_menu_offers_four_root_positions(main_window) -> None:
     assert [a for a in main_window.findChildren(QAction) if a.text() == "Root on left"][0].isChecked()
 
 
+@pytest.mark.requires_qt
+@pytest.mark.requires_engine  # 主窗口经适配层依赖引擎
 def test_choosing_root_position_redraws_canvas(main_window, tmp_path) -> None:
     """切换朝向必须立刻重画当前视图：先加载一棵树再点菜单。"""
     from PySide6.QtGui import QAction
@@ -215,6 +237,8 @@ def test_choosing_root_position_redraws_canvas(main_window, tmp_path) -> None:
     assert main_window.canvas.ax.get_xlabel() == i18n.t("canvas.axis_relative")
 
 
+@pytest.mark.requires_qt
+@pytest.mark.requires_engine  # 主窗口经适配层依赖引擎
 def test_root_position_label_follows_language(main_window) -> None:
     from PySide6.QtGui import QAction
 

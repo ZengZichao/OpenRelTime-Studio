@@ -10,25 +10,58 @@ permissions:
   contents: read
 
 env:
-  # Keep in sync with release.yml.  Bump both when the engine publishes a new
-  # tag (see the release checklist in CONTRIBUTING.md); Dependabot does not
-  # track git pins, so this variable is the single point to update per file.
-  ENGINE_REF: v0.1.0
+  # Studio CI installs the engine from its **development branch**, not from a
+  # frozen release tag.  The engine is where every number Studio shows comes
+  # from, so the Studio suite is the front end's only early warning that an
+  # engine change broke the adapter — and pinning a tag meant that warning could
+  # only ever fire against the already-released engine.  `release.yml` keeps a
+  # tag pin on purpose: a published .app bundle has to embed one specific,
+  # archivable engine, so its `ENGINE_REF` is bumped by hand at release time
+  # (see the release checklist in CONTRIBUTING.md).  Dependabot does not track
+  # git refs, so each file's variable is the single point to update.
+  ENGINE_REF: main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # NOTE ON THE windows-latest ROW: it has not been executed yet.  Nothing in
+  # either repository can run a Windows job locally, so this row is first
+  # verified by the next push.  The code itself is pure Python, PySide6 publishes
+  # Windows wheels, no step shells out through a command interpreter, and every
+  # path is built with `pathlib`; the two things a Windows run actually has to
+  # confirm are that Qt's `offscreen` plugin loads from the wheel and that the
+  # 46 `requires_qt` tests pass headless.  If the row fails for a Windows-only
+  # reason, keep the other two rows and record the failure in docs/testing.md
+  # rather than dropping the row.
   test:
     name: Test (${{ matrix.os }} / Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
+        exclude:
+          # Windows is the one platform this suite had never run on, and both
+          # the engine and Studio are pure Python (PySide6 ships Windows
+          # wheels), so one recent interpreter is enough to catch the
+          # platform-specific failure modes — path handling, the locale encoding
+          # used by file writes, and the Qt `offscreen` platform plugin —
+          # without quadrupling the queue time.  Widen the row if the first
+          # Windows runs come back green.
+          - os: windows-latest
+            python-version: "3.10"
+          - os: windows-latest
+            python-version: "3.11"
+          - os: windows-latest
+            python-version: "3.12"
     env:
+      # Applies to every runner in the matrix, Windows included: it is what lets
+      # the 46 `requires_qt` tests construct widgets with no display server, and
+      # `_availability._qt_usable()` probes the same setting in a subprocess
+      # before any test touches it.
       QT_QPA_PLATFORM: offscreen
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +73,8 @@ jobs:
           cache: pip
 
       - name: Install system libraries for Qt (Linux)
+        # Only Linux runners need these; macOS and the Windows wheel bundle their
+        # own Qt runtime.
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
@@ -47,8 +82,12 @@ jobs:
 
       - name: Install the OpenRelTime engine
         # The engine is a separate repository and is distributed from source
-        # there, not from a package index, so it is installed from its release
-        # tag.  Studio talks to it through its public Python API only.
+        # there, not from a package index, so it is installed from a git ref.
+        # For CI that ref is the engine's development branch (ENGINE_REF above),
+        # never a frozen release tag: the adapter has to break here rather than
+        # after a release.  `release.yml` pins a tag instead, because a published
+        # bundle must embed one archivable engine.  Studio talks to the engine
+        # through its public Python API only.
         run: |
           python -m pip install --upgrade pip
           python -m pip install "openreltime[plot] @ git+https://github.com/ZengZichao/OpenRelTime.git@${ENGINE_REF}"
@@ -69,6 +108,13 @@ jobs:
         run: python tools/check_i18n.py
 
       - name: Test suite (headless GUI)
+        # Both dependencies are installed on this job, so all 144 tests are
+        # collected and the 46 `requires_qt` ones actually run through the
+        # `offscreen` platform plugin; the only expected skips are the 3 that hand
+        # their behaviour to the manual `smoke_gui.py` script.  A run that reports
+        # 98 passed / 46 skipped instead means Qt could not build a QApplication on
+        # this runner — an environment fault, not a suite fault, and one the
+        # `gating:` line at the end of the log names explicitly.
         run: python -m pytest -q --cov=openreltime_studio --cov-report=term-missing
 
   i18n-symmetry:
@@ -80,7 +126,15 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Check catalogs without Qt installed
+      - name: Check catalogs with pytest as the only dependency
+        # This job is the proof that the per-test gating is honest, so it is kept
+        # deliberately minimal: `pip install pytest` and nothing else — no
+        # PySide6, no engine, no `.[dev]` extra, no Qt system libraries.
+        # `test_i18n_catalogs.py` reads the catalogues and the sources statically
+        # and needs neither dependency, which is exactly the 9 tests it collects
+        # and runs here (measured: `9 passed`).  Naming the file rather than the
+        # directory matters: the rest of the suite would skip or self-skip, and a
+        # green run would prove nothing.
         run: |
           python -m pip install pytest
           python -m pytest openreltime_studio/tests/test_i18n_catalogs.py -q

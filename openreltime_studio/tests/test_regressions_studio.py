@@ -12,6 +12,11 @@
 运行::
 
     python3 -m pytest openreltime_studio/tests/test_regressions_studio.py -q
+
+收集粒度：本文件需要引擎发行版 ``openreltime``（模块顶部
+显式 ``require_engine()``，缺它整模块带着修复命令跳过），但**不需要 Qt**
+—— 除标了 ``pytest.mark.requires_qt`` 的用例外，其余在没装 PySide6 的
+机器上照样运行。
 """
 
 from __future__ import annotations
@@ -29,6 +34,12 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
+from openreltime_studio.tests import _availability as availability  # noqa: E402
+
+pytestmark = pytest.mark.requires_engine
+
+availability.require_engine()
+
 import openreltime as ort  # noqa: E402
 from openreltime.cli import cli as ort_cli  # noqa: E402
 from openreltime_studio import i18n
@@ -37,19 +48,6 @@ from openreltime_studio.adapters import openreltime_adapter as adapter  # noqa: 
 STUDIO = ROOT / "openreltime_studio"
 EXAMPLE_TREE = ROOT / "data" / "examples" / "example.nwk"
 EXAMPLE_CALS = ROOT / "data" / "examples" / "example_calibrations.tsv"
-
-try:  # pragma: no cover - environment dependent
-    import PySide6  # noqa: F401
-
-    HAVE_QT = True
-except ImportError:
-    HAVE_QT = False
-
-needs_qt = pytest.mark.skipif(
-    not HAVE_QT,
-    reason="需要 PySide6：本环境未安装 GUI extra，"
-    "该行为只在 openreltime_studio/tests/smoke_gui.py 里做离屏验证",
-)
 
 
 # ── 静态回读工具 ────────────────────────────────────────────────────────
@@ -219,7 +217,7 @@ class TestBoundDisplayAndValidation:
         assert adapter.bound_error(float("inf"), None) is not None
         assert adapter.bound_error(-1.0, None) is not None
 
-    @pytest.mark.skipif(not HAVE_QT, reason="需要 PySide6 才能构造 QDoubleSpinBox")
+    @pytest.mark.requires_qt  # 需要 PySide6 才能构造 QDoubleSpinBox
     def test_editor_spin_minimum_is_positive(self):  # pragma: no cover - 需 Qt
         from openreltime_studio.widgets.calibration_editor import CalibrationEditor
 
@@ -457,7 +455,7 @@ class TestCancellationIsHonoured:
         # 取消判断必须在赋值之前 return
         assert body.index("return") < body.index("self.calibrated_result = result")
 
-    @pytest.mark.skipif(not HAVE_QT, reason="需要 PySide6 才能起 QThread 跑取消流程")
+    @pytest.mark.requires_qt  # 需要 PySide6 才能起 QThread 跑取消流程
     def test_cancel_during_bounds_run_is_dropped(self):  # pragma: no cover - 需 Qt
         pytest.skip("见 smoke_gui.py 的「4c. 取消：结果不得被应用」")
 
@@ -530,7 +528,7 @@ class TestCIVarianceWiring:
         assert "adapter.load_branch_variances" in ci
         assert "n_sites=self.ci_params.n_sites" in ci
 
-    @pytest.mark.skipif(not HAVE_QT, reason="需要 PySide6 才能读 QSpinBox/QLabel 状态")
+    @pytest.mark.requires_qt  # 需要 PySide6 才能读 QSpinBox/QLabel 状态
     def test_panel_fallback_note_and_positive_minimum(self):  # pragma: no cover - 需 Qt
         from openreltime_studio.widgets.param_panels import CIParamsWidget
 
@@ -569,7 +567,7 @@ class TestCalibrationMarksSurviveRedraw:
         assert "self._mark_artists" in body
         assert "remove()" in body
 
-    @pytest.mark.skipif(not HAVE_QT, reason="需要 PySide6 + matplotlib Qt 画布")
+    @pytest.mark.requires_qt  # 需要 PySide6 + matplotlib Qt 画布
     def test_marks_visible_after_interactive_edit(self):  # pragma: no cover - 需 Qt
         pytest.skip("见 smoke_gui.py 的「4b. 交互增删校正点：标记必须同步」")
 
@@ -589,7 +587,7 @@ class TestExportHandlesRateResult:
         assert "RateResult" in imported
         assert adapter.RateResult is ort.RateResult
 
-    @pytest.mark.skipif(not HAVE_QT, reason="需要 PySide6 才能走 GUI 导出入口")
+    @pytest.mark.requires_qt  # 需要 PySide6 才能走 GUI 导出入口
     def test_gui_has_no_rate_worker(self):  # pragma: no cover - 需 Qt
         pytest.skip("GUI 目前没有 rrf_rates Worker；此处只覆盖适配层分支")
 

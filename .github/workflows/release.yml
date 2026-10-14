@@ -18,7 +18,7 @@ concurrency:
 
 env:
   # Keep in sync with ci.yml.  Bump both when the engine publishes a new tag.
-  ENGINE_REF: v0.1.0
+  ENGINE_REF: v0.1.1
 
 jobs:
   build:
@@ -66,17 +66,22 @@ jobs:
       - name: Stamp the bundle version from the tag
         # The spec hardcodes CFBundleShortVersionString; rewrite it so the
         # frozen bundle reports the tag it was built from, not the version
-        # at the time the spec was last touched.
+        # at the time the spec was last touched.  The literal is matched by
+        # pattern rather than compared against a pinned version string: an
+        # exact-match anchor here would break the release the moment step 2 of
+        # the checklist in CONTRIBUTING.md bumps the spec to the next version.
         run: |
           VERSION="${GITHUB_REF_NAME#v}" python - <<'PY'
           import os
+          import re
 
           version = os.environ["VERSION"]
           path = "openreltime_studio/resources/OpenRelTimeStudio.spec"
           text = open(path, encoding="utf-8").read()
-          old = 'CFBundleShortVersionString": "0.1.0"'
-          assert old in text, "spec no longer carries a literal version to stamp"
-          text = text.replace(old, f'CFBundleShortVersionString": "{version}"')
+          pattern = re.compile(r'(CFBundleShortVersionString": ")[^"]*(")')
+          assert pattern.search(text), "spec no longer carries a literal version to stamp"
+          text, stamped = pattern.subn(r"\g<1>" + version + r"\g<2>", text)
+          assert stamped == 1, f"expected exactly one version literal, stamped {stamped}"
           open(path, "w", encoding="utf-8").write(text)
           print(f"stamped CFBundleShortVersionString={version}")
           PY

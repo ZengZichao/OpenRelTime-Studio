@@ -4,6 +4,12 @@
 **子节点**的时刻上，于是尖自己那一行只剩一条竖线，内部节点那一行叠满别人的
 分支；同时树只能以「根在右」显示。这里同时锁住两件事：几何正确、四个朝向可切
 换且会持久化。
+
+收集粒度：本文件的每个用例都要在 matplotlib 的 Qt 画布上真的画一棵树，因此
+整模块同时挂 ``requires_qt`` 与 ``requires_engine``。引擎缺席时必须在**导入前**
+拦住（适配层会直接 ``ImportError``），所以模块级调用 ``require_engine()``；
+Qt 则**不**做模块级跳过——那会把 15 个用例折叠成 1 条收集期跳过，让测试计数
+随环境漂移。Qt 不可用时由 ``requires_qt`` 标记逐个显式跳过，计数恒定。
 """
 
 from __future__ import annotations
@@ -13,8 +19,19 @@ import math
 import pytest
 
 from openreltime_studio import i18n, themes
-from openreltime_studio.adapters import openreltime_adapter as adapter
-from openreltime_studio.widgets.tree_canvas import (
+from openreltime_studio.tests import _availability as availability
+
+pytestmark = [
+    pytest.mark.requires_engine,
+    pytest.mark.requires_qt,
+]
+
+availability.require_engine()
+
+from openreltime_studio.adapters import (  # noqa: E402
+    openreltime_adapter as adapter,
+)
+from openreltime_studio.widgets.tree_canvas import (  # noqa: E402
     DEFAULT_ORIENTATION,
     ORIENTATIONS,
     TreeCanvas,

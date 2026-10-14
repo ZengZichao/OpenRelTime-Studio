@@ -22,6 +22,29 @@
 
 - 仓库设置：`main` 仅允许 squash 合入、合并后自动删除分支，并以必需状态
   检查保护 `main`。
+- 测试收集改为按**用例**门控，不再按目录整体丢弃。根级 `conftest.py` 过去
+  只要导入不了 PySide6 就把 `openreltime_studio/tests` 整个跳过，因此没装
+  可选 GUI 依赖的机器上报告是 `no tests collected`（退出码 5），144 个测试
+  一起消失——其中包括 26 个既不依赖 Qt 也不依赖引擎的。现在真的构造 Qt
+  对象的用例带 `requires_qt` 标记，会触到引擎的带 `requires_engine` 标记；
+  本次改动的实测数字：两个依赖齐备时收集 144 个、运行 141 个，不装
+  PySide6 仍运行 98 个，不装引擎运行 40 个，两者都不装运行 26 个。
+  `pytest` 同时加上 `--strict-markers`。
+- 引擎 `openreltime` 导不出来时，报的是点名失败的那条 import 与修复方式的
+  **显式跳过**，不再是 4 个令人摸不着头脑的收集错误；凡因缺能力而跳过的
+  运行，结尾都会补一行 `gating:` 说明。
+- `openreltime_studio/tests/smoke_gui.py` 是手工离屏脚本，现在有两道防线把
+  它挡在收集之外（`collect_ignore` 与文件自身的导入守卫），不会出现「收集到
+  0 个用例却一片绿」。
+- 文档：新增 `docs/testing-zh.md`（与 `docs/testing.md` 成对），逐个回答七个
+  测试文件各覆盖什么、各有多少用例、哪些需要 Qt 绑定或引擎。
+
+### 修复
+
+- 测试套件不再自相矛盾：`test_i18n_catalogs.py` 开头写明「不依赖 Qt，没装
+  PySide6 的机器上也能跑」，现在它（9 个）、`test_docs_hygiene.py`（6 个）
+  以及 `test_bundled_example.py` 里的打包检查确实在没有 GUI 绑定时被收集
+  并通过。
 
 ## 0.1.0 — 2026-09-29
 

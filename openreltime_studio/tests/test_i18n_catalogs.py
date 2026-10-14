@@ -1,6 +1,8 @@
 """双语目录与主题令牌的静态检查。
 
-这些检查不依赖 Qt，因此在没有显示环境（甚至没装 PySide6）的机器上也能跑：
+这些检查不依赖 Qt，也不依赖引擎，因此在没有显示环境（甚至没装 PySide6）的
+机器上也能跑——这条承诺由 ``openreltime_studio/tests/conftest.py`` 的按用例
+门控兜住：本文件不挂任何 ``requires_*`` 标记，收集与运行都与可选依赖无关：
 
 * ``test_no_hardcoded_cjk_literals`` — 界面文案必须进目录，Python 源码里不许
   残留中文字符串字面量（注释与 docstring 不受限）。

@@ -2,7 +2,12 @@
 
 **Language: English** · [简体中文](usage-zh.md)
 
-Version 0.1.0 · Requires Python ≥ 3.10 · Licence GPL-3.0-or-later
+Version 0.1.1 · Requires Python ≥ 3.10 · Licence GPL-3.0-or-later
+
+This manual describes the **0.1.1** working tree. The only tagged, released and
+archived build is still **v0.1.0**, so every download link and pinned wheel URL
+below names `v0.1.0`; that is not a stale version string, it is the asset that
+actually exists.
 
 This guide covers installation, launching, the window layout, language and
 theme switching, the full analysis workflow, the results and export behaviour,
@@ -62,13 +67,15 @@ adapter, from a `QThread` so the interface stays responsive.
 
 Two consequences that matter to you:
 
-* **The results match the command line.** Studio and the `openreltime` CLI run
-  the same code on the same inputs, so an analysis done in the GUI reproduces
-  exactly on a cluster (see §7.4).
+* **The results are the command line's results.** Studio and the `openreltime`
+  CLI run the same engine code on the same inputs, and §7.4 shows the CLI
+  commands the interface writes out for what you did; nothing in the GUI is
+  computed by a second implementation.
 * **The engine is an installed requirement, never a copy.** `openreltime` is a
-  declared dependency in `pyproject.toml`, pulled in from the package index
-  together with `openreltime[plot]` (matplotlib). Studio ships no copy of the
-  engine's source. If the engine changes its public API, the adapter layer is
+  declared dependency in `pyproject.toml`, pulled in as an installed distribution
+  together with `openreltime[plot]` (matplotlib). Neither the engine nor Studio is
+  on a package index yet, so both come from the release assets or from a source
+  checkout — see §2. If the engine changes its public API, the adapter layer is
   the single place that has to follow.
 
 Engine home page: <https://github.com/ZengZichao/OpenRelTime>.
@@ -169,10 +176,14 @@ Exactly as declared in `pyproject.toml`:
 **macOS and Windows are the declared desktop targets.** No Linux platform
 classifier is declared, so Linux is not an advertised target either — although
 the CI workflow does run the test suite headless on `ubuntu-latest` and
-`macos-latest` across Python 3.10–3.13, and the canvas font fallback list
-covers a Linux CJK font. Studio itself contains no compiled extension code and
-installs as a pure-Python wheel; the download time of an install is dominated
-by the PySide6 wheel it pulls in, not by Studio.
+`macos-latest` across Python 3.10–3.13, and on `windows-latest` across Python
+3.13, and the canvas font fallback list covers a Linux CJK font. The
+`windows-latest` row is new and has not been executed yet: it is verified by the
+next push, and the two things it has to confirm are that Qt's `offscreen` platform
+plugin loads from the Windows wheel and that the 46 `requires_qt` tests pass
+headless there. Studio itself contains no compiled extension code and installs as
+a pure-Python wheel; the download time of an install is dominated by the PySide6
+wheel it pulls in, not by Studio.
 
 ### 2.3.1 Verifying a build
 
@@ -1215,20 +1226,35 @@ QT_QPA_PLATFORM=offscreen python -m pytest
 ```
 
 Notes on how the suite behaves (from the two `conftest.py` files and
-`pyproject.toml`):
+`pyproject.toml`). Per-file coverage and per-configuration test counts live in
+[testing.md](testing.md).
 
-* The **root** `conftest.py` keeps a single guard: it tries to import PySide6
-  and, when that fails, sets `collect_ignore_glob` to skip
-  `openreltime_studio/tests` rather than failing the whole run — the GUI extra
-  is optional.
+* The **root** `conftest.py` guards nothing: it only exports
+  `QT_QPA_PLATFORM=offscreen` before anything imports Qt. Collection no longer
+  depends on the optional GUI binding — the earlier `collect_ignore_glob` guard
+  made all 144 tests vanish on a machine without PySide6, including the 26 that
+  never touch Qt. Collection **does** depend on the engine: all 144 are collected
+  whenever `openreltime` is importable, and 55 tests plus 3 explicit
+  module-level skips when it is not.
 * The **in-package** `openreltime_studio/tests/conftest.py` carries the GUI
   fixtures so the tests ship with the distribution and can be run against an
   installed copy with `python -m pytest --pyargs openreltime_studio.tests`. It
-  defaults `QT_QPA_PLATFORM` to `offscreen` and creates a **session-scoped
-  `QApplication`** (Fusion style), because constructing a `QWidget` without one
-  aborts the process.
-* The catalog suite (`test_i18n_catalogs.py`) needs no Qt at all, which is why
-  CI also runs it alone on a machine without PySide6 installed.
+  creates a **session-scoped `QApplication`** (Fusion style) whenever the Qt
+  binding imports, because constructing a `QWidget` without one aborts the
+  process, and it translates two registered markers into explicit skips:
+  `requires_qt` for tests that construct Qt objects, `requires_engine` for tests
+  that reach the engine through the adapter. A skip reason always names the
+  import that failed and the command that fixes it, and the run ends with a
+  `gating:` line counting what was skipped for a missing capability — nothing
+  disappears quietly. `addopts` carries `--strict-markers`, so a mistyped gate
+  fails the run rather than being ignored.
+* What still runs when the engine is installed but Qt is unusable (no window
+  session, or two Qt builds in one process): 98 of the 144 tests — the whole
+  catalogue and documentation-hygiene suites, the adapter suite, the packaging
+  checks on the bundled example and icons, and the logic-level regressions — with
+  the 46 `requires_qt` tests skipping individually. With the binding really
+  absent, the same 98 run; with neither PySide6 nor the engine, 26 still run.
+  See [testing.md](testing.md) §5 for each configuration and its measured counts.
 * Test modules: `test_adapter.py` (adapter/CLI/export helpers),
   `test_i18n_catalogs.py` (static catalog and token rules),
   `test_regressions_studio.py` (regression suites),
@@ -1241,14 +1267,21 @@ Notes on how the suite behaves (from the two `conftest.py` files and
   dependency relationship. Write documentation accordingly — this test fails on
   a bad link.
 * A manual smoke run renders every stage off-screen and writes images to
-  `.smoke_out/` in the project root — handy for eyeballing a theme change:
+  `.smoke_out/` in the project root — handy for eyeballing a theme change. It is
+  a script, not a test, and is kept out of collection by `collect_ignore` plus
+  an import guard in the file itself:
 
 ```bash
 QT_QPA_PLATFORM=offscreen python openreltime_studio/tests/smoke_gui.py
 ```
 
 The CI workflow runs `python tools/check_i18n.py` **before**
-`python -m pytest -q` on Ubuntu and macOS × Python 3.10–3.13.
+`python -m pytest -q` on Ubuntu and macOS × Python 3.10–3.13 and on Windows ×
+Python 3.13, and it installs the engine from its `main` branch (`ENGINE_REF: main`
+in `.github/workflows/ci.yml`) rather than from a frozen release tag, so an engine
+commit that breaks the adapter fails here on the day it lands.
+`.github/workflows/release.yml` keeps a tag pin: a published bundle must embed one
+archivable engine version.
 
 ### 10.4 The translation gate
 

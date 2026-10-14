@@ -6,7 +6,7 @@ All notable changes to **OpenRelTime Studio** are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), the versioning
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.1.1 — 2026-10-08
 
 ### Added
 
@@ -25,6 +25,31 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Repository settings: squash-only merges onto `main`, automatic deletion of
   merged head branches, and required status checks protecting `main`.
+- Test collection is gated per test instead of per directory. The root
+  `conftest.py` used to drop `openreltime_studio/tests` wholesale whenever
+  PySide6 could not be imported, so an environment without the optional GUI
+  binding reported `no tests collected` (exit code 5) and hid all 144 tests —
+  including the 26 that need neither Qt nor the engine. Tests that construct Qt
+  objects now carry a registered `requires_qt` marker and tests that reach the
+  engine carry `requires_engine`; measured on this change: 144 collected and 141
+  run with both dependencies, 98 run without PySide6, 40 without the engine, 26
+  without either. `pytest` now also runs with `--strict-markers`.
+- A missing `openreltime` engine is an explicit skip naming the failed import
+  and the way to fix it, instead of four collection errors; every run that
+  skips for a missing capability ends with a `gating:` line saying so.
+- `openreltime_studio/tests/smoke_gui.py` is a manual off-screen script and is
+  now kept out of collection twice over — `collect_ignore` plus an import guard
+  in the file — so it can never be collected as zero tests and look green.
+- Documentation: `docs/testing.md` / `docs/testing-zh.md` state what each of the
+  seven test files covers, how many tests each holds, and which of them need the
+  Qt binding or the engine.
+
+### Fixed
+
+- The suite no longer contradicts its own statement that the catalogue checks
+  run on machines without PySide6: `test_i18n_catalogs.py` (9 tests),
+  `test_docs_hygiene.py` (6) and the packaging checks in
+  `test_bundled_example.py` now collect and pass with no GUI binding installed.
 
 ## 0.1.0 — 2026-09-29
 

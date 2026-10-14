@@ -1,4 +1,9 @@
-"""适配层单元测试 — mock openreltime API，验证 Result→UI 模型转换。"""
+"""适配层单元测试 — mock openreltime API，验证 Result→UI 模型转换。
+
+本文件**不碰 Qt**：它只测适配层把引擎对象翻译成 UI 模型的纯逻辑，因此装了
+引擎就能跑，不必装 PySide6。引擎不可导入时整模块显式跳过（理由点名成因
+与修复命令），绝不静默通过。
+"""
 
 from __future__ import annotations
 
@@ -10,7 +15,13 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-from openreltime_studio.adapters import openreltime_adapter as adapter
+from openreltime_studio.tests import _availability as availability
+
+pytestmark = pytest.mark.requires_engine
+
+availability.require_engine()
+
+from openreltime_studio.adapters import openreltime_adapter as adapter  # noqa: E402
 
 # ── 树 I/O ──────────────────────────────────────────────────────────────
 

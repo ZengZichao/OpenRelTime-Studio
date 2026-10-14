@@ -2,7 +2,11 @@
 
 **语言：中文** · [English](usage-en.md)
 
-版本 0.1.0 · 环境：Python ≥ 3.10 · 许可：GPL-3.0-or-later
+版本 0.1.1 · 环境：Python ≥ 3.10 · 许可：GPL-3.0-or-later
+
+本手册描述的是 **0.1.1** 工作树。已打标签、已发布并已存档的构建仍然只有
+**v0.1.0**，所以下文每一个下载链接与被固定的 wheel URL 都写的是 `v0.1.0`；
+那不是过期的版本号，而是当前真实存在的发布资产。
 
 本手册覆盖安装、启动、窗口布局、语言与主题切换、完整分析流程、结果与导出
 行为、引擎警告与取消、故障排查，以及开发者说明。英文对应版本为
@@ -56,11 +60,14 @@ Studio **不含任何算法**。界面上出现的每一个数字都由已安装
 
 两点对你重要的推论：
 
-* **结果与命令行一致。** Studio 与 `openreltime` 命令行在同一批输入上跑的是
-  同一份代码，所以图形界面里完成的分析可以在集群上精确复现（见 §7.4）。
+* **结果就是命令行那份结果。** Studio 与 `openreltime` 命令行在同一批输入上跑的
+  是同一份引擎代码，§7.4 展示界面为所见操作写出的等效 CLI 命令；GUI 里没有第二套
+  实现来另算一遍。
 * **引擎是已安装的依赖，不是拷贝。** `openreltime` 是 `pyproject.toml` 中声明
-  的依赖项，连同 `openreltime[plot]`（matplotlib）一起从包索引安装。Studio
-  不携带引擎源码的任何副本。若引擎改动了公共 API，需要跟进的只有适配层这一处。
+  的依赖项，连同 `openreltime[plot]`（matplotlib）一起以**已安装的发行版**引入。
+  引擎与 Studio 目前都未发布到包索引，两者都只能从 Release 附带的文件或源码检出
+  安装——见 §2。Studio 不携带引擎源码的任何副本。若引擎改动了公共 API，需要跟进的
+  只有适配层这一处。
 
 引擎主页：<https://github.com/ZengZichao/OpenRelTime>。
 
@@ -155,7 +162,10 @@ python -m pip install --upgrade \
 **已声明的桌面目标平台是 macOS 与 Windows。** 项目未声明任何 Linux 平台
 classifier，因此 Linux 不属于对外声明的目标——尽管 CI 工作流确实在
 `ubuntu-latest` 与 `macos-latest` 上、覆盖 Python 3.10–3.13 无头运行测试套件，
-而且画布的字体回退链里包含一个 Linux 中文字体。Studio 自身不含编译扩展代码，
+并在 `windows-latest` 上覆盖 Python 3.13，而且画布的字体回退链里包含一个 Linux
+中文字体。`windows-latest` 这一行是新加的、尚未真正跑过：它要在下一次 push 上验证，
+需要确认的两件事是 Qt 的 `offscreen` 平台插件能从 Windows 轮子里加载，以及那 46 个
+`requires_qt` 用例在无头环境下真的过得了。Studio 自身不含编译扩展代码，
 以纯 Python 轮子安装；一次安装的下载体量主要来自它拉取的 PySide6 轮子，而不是
 Studio 本身。
 
@@ -1075,19 +1085,30 @@ cd OpenRelTime-Studio
 QT_QPA_PLATFORM=offscreen python -m pytest
 ```
 
-关于这套测试的行为（依据两个 `conftest.py` 与 `pyproject.toml`）：
+关于这套测试的行为（依据两个 `conftest.py` 与 `pyproject.toml`）。逐个文件的
+覆盖范围与各种环境下的用例数见 [testing-zh.md](testing-zh.md)。
 
-* **仓库根**的 `conftest.py` 只保留一条守卫：尝试导入 PySide6，失败时设置
-  `collect_ignore_glob` 跳过 `openreltime_studio/tests`，而不是让整轮运行报错——
-  GUI 是可选 extras。
+* **仓库根**的 `conftest.py` 不做任何门控：它只在任何东西导入 Qt 之前导出
+  `QT_QPA_PLATFORM=offscreen`。收集测试不再取决于可选的 GUI 绑定——旧实现用
+  `collect_ignore_glob` 守门，结果是没装 PySide6 的机器上 144 个测试整体消失，
+  连其中 26 个完全不碰 Qt 的也一起没了。但收集**确实**取决于引擎：只要
+  `openreltime` 能被导入就收集满 144 个，导不出来时收集到 55 个用例加 3 条
+  显式的模块级跳过。
 * **包内**的 `openreltime_studio/tests/conftest.py` 承载 GUI 夹具，因此测试随发行版
   一起发布，可以针对已安装的副本运行
-  `python -m pytest --pyargs openreltime_studio.tests`。它把
-  `QT_QPA_PLATFORM` 默认设为 `offscreen`，并创建一个**会话级
-  `QApplication`**（Fusion 风格），因为在没有它的情况下构造 `QWidget` 会让进程
-  直接 abort。
-* 目录检查套件（`test_i18n_catalogs.py`）完全不依赖 Qt，所以 CI 会在没装
-  PySide6 的机器上单独跑它。
+  `python -m pytest --pyargs openreltime_studio.tests`。只要 Qt 绑定能导入，它就
+  创建一个**会话级 `QApplication`**（Fusion 风格），因为在没有它的情况下构造
+  `QWidget` 会让进程直接 abort；它还把两个已注册的标记翻译成显式跳过：
+  `requires_qt` 给真的构造 Qt 对象的用例，`requires_engine` 给经由适配层触到引擎
+  的用例。跳过理由一定点名是哪条 import 失败、以及修它的命令，run 结尾还会再打
+  一行 `gating:` 统计因缺能力而跳过的条数——不会有任何东西静默消失。
+  `addopts` 里带 `--strict-markers`，门控标记写错字会直接让本轮运行失败，而不是
+  被忽略。
+* 引擎已装、但 Qt 用不了（没有窗口会话，或同一进程里加载了两套 Qt 构建）时，
+  仍然能跑的是 144 个里的 98 个——双语目录与文档卫生两套全部、适配层全套、内置
+  示例与图标的打包检查、以及逻辑级回归；那 46 个 `requires_qt` 用例逐个跳过。
+  绑定真的没装时同样是这 98 个；PySide6 与引擎都没有时仍有 26 个能跑。各环境的
+  实测条数见 [testing-zh.md](testing-zh.md) §5。
 * 测试模块：`test_adapter.py`（适配层 / CLI / 导出辅助函数）、
   `test_i18n_catalogs.py`（目录与令牌的静态规则）、
   `test_regressions_studio.py`（回归测试）、
@@ -1098,14 +1119,19 @@ QT_QPA_PLATFORM=offscreen python -m pytest
   且项目 `README.md` 要讲明依赖关系。写文档时请照此遵守——链接写错会让这个测试
   失败。
 * 另有一个手工冒烟脚本，会离屏渲染每个阶段并把图片写到项目根目录的
-  `.smoke_out/`，方便肉眼检查主题改动：
+  `.smoke_out/`，方便肉眼检查主题改动。它是脚本而不是测试，除 `collect_ignore`
+  之外文件自身还有一道导入守卫，因此永远不会被收集：
 
 ```bash
 QT_QPA_PLATFORM=offscreen python openreltime_studio/tests/smoke_gui.py
 ```
 
 CI 工作流在 `python -m pytest -q` **之前**运行 `python tools/check_i18n.py`，
-矩阵为 Ubuntu 与 macOS × Python 3.10–3.13。
+矩阵为 Ubuntu 与 macOS × Python 3.10–3.13、Windows × Python 3.13；引擎取自它的
+`main` 分支（`.github/workflows/ci.yml` 里的 `ENGINE_REF: main`），而不是冻结的
+发布标签，因此改动适配层的引擎提交当天就会在这里失败。
+`.github/workflows/release.yml` 仍固定标签：对外发布的 bundle 必须内嵌一个可存档的
+确定引擎版本。
 
 ### 10.4 翻译门禁
 

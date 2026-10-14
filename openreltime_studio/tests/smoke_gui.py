@@ -1,10 +1,20 @@
-"""离屏 GUI 冒烟测试：加载示例树 → RRF → 校正 → ddBD → CI，逐阶段截图。
+"""离屏 GUI 冒烟脚本：加载示例树 → RRF → 校正 → ddBD → CI，逐阶段截图。
 
-用法（需安装 gui 依赖）::
+**手工运行的脚本，不是 pytest 用例**，因此绝不参与收集：pytest 夹具只给
+控件建模，无法驱动「点按钮 → 等 Worker → 看画布」的整条异步链路，也无法
+产出给人眼看的截图。两道防线保证它不会被静默收集：
+
+1. ``openreltime_studio/tests/conftest.py`` 的 ``collect_ignore``；
+2. 本文件下面那道导入守卫——即便有人显式把它当测试路径传给 pytest，也会
+   立刻报错并给出正确用法，而不是当成 0 个用例静默通过。
+
+用法（需安装 gui 依赖与引擎）::
 
     QT_QPA_PLATFORM=offscreen python openreltime_studio/tests/smoke_gui.py
 
-截图输出到项目根目录 ``.smoke_out/``，用于人工检查界面细节与响应式状态。
+退出码 0 表示全部硬断言通过（末尾打印 ``SMOKE OK``）；任何一条 ``check()``
+失败都打印失败项并以非 0 退出。截图输出到项目根目录 ``.smoke_out/``，用于
+人工检查界面细节与响应式状态。
 
 除了截图，脚本还对每个阶段做硬断言，其中刻意覆盖容易被"异步路径"掩盖
 的界面缺陷：校正点标记在**交互增删**后必须留在画布上、
@@ -18,6 +28,14 @@ import os
 import shlex
 import sys
 from pathlib import Path
+
+if __name__ != "__main__":  # pragma: no cover - 收集守卫，不是用例
+    raise RuntimeError(
+        "smoke_gui.py 是手工运行的离屏冒烟脚本，不是 pytest 用例；"
+        "它作为模块被导入说明收集配置出了问题。正确用法："
+        "QT_QPA_PLATFORM=offscreen python "
+        "openreltime_studio/tests/smoke_gui.py"
+    )
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
@@ -302,7 +320,10 @@ def main() -> int:
     print("== 10. 格式下拉框真正生效 ==")
     nexus_txt = out / "tree_noext.txt"
     nexus_txt.write_text(
-        "#NEXUS\nbegin trees;\n  tree t1 = " + example.read_text().strip() + "\nend;\n"
+        "#NEXUS\nbegin trees;\n  tree t1 = "
+        + example.read_text(encoding="utf-8").strip()
+        + "\nend;\n",
+        encoding="utf-8",
     )
     win.tree = None
     win.tree_path = str(nexus_txt)

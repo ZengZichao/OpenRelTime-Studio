@@ -9,7 +9,7 @@ from __future__ import annotations
 __all__ = ["__version__", "main"]
 
 #: 与 pyproject.toml 中的 project.version 保持一致。
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 def main():

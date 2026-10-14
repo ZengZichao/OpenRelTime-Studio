@@ -11,8 +11,8 @@ code can run RRF dating, place calibrations by clicking on the tree, and export
 reproducible results.
 
 Every number comes from the installed `openreltime` distribution through its
-public Python API — the GUI reimplements no algorithm, and the analyses match
-the command line exactly.
+public Python API — the GUI reimplements no algorithm, and the same engine code is
+what the command line runs.
 
 | | |
 | --- | --- |
@@ -148,6 +148,20 @@ QT_QPA_PLATFORM=offscreen python -m pytest      # headless GUI + adapter suite
 python tools/check_i18n.py                      # bilingual catalog / theme-token gate
 ```
 
+The suite is **144 tests in seven files**, and only 19 of them are adapter
+tests; the rest check packaging and bundled resources, documentation hygiene,
+the bilingual catalogues, the logic behind the interface, tree-layout geometry
+and the live interface itself. [docs/testing.md](docs/testing.md) gives the
+file-by-file inventory, the markers that gate each test on the Qt binding and on
+the engine, and the counts measured on machines with and without them
+([简体中文](docs/testing-zh.md)).
+
+Those 144 tests gate the **front end** — adapter wiring, packaging, localisation,
+documentation hygiene and tree-layout geometry. They re-run no comparison against
+the engine's golden files or validation gates, which live in the engine repository.
+CI installs the engine from its development branch, so an engine commit that breaks
+the adapter fails here rather than after a release.
+
 `tools/check_i18n.py` enforces the rules that keep the interface bilingual: no
 hard-coded Chinese string literals in widget code, no hard-coded colours outside
 `themes.py`, every referenced key present in both languages, no dead catalog
@@ -169,7 +183,10 @@ Distributed under GPL-3.0-or-later, matching the engine. See
 v0.1.0 is archived on Zenodo at
 [10.5281/zenodo.23053175](https://doi.org/10.5281/zenodo.23053175); cite
 [10.5281/zenodo.23053174](https://doi.org/10.5281/zenodo.23053174) for the
-software as a whole across versions.
+software as a whole across versions. `pyproject.toml` and `CITATION.cff` are at
+**0.1.1**, the current working-tree version: 0.1.1 has no tag, no release and no
+Zenodo version record yet, so `CITATION.cff` carries the version-agnostic
+concept DOI rather than a version DOI that does not exist.
 
 ## Authors
 

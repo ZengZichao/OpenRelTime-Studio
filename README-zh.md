@@ -10,7 +10,7 @@ OpenRelTime Studio 把 [OpenRelTime](https://github.com/ZengZichao/OpenRelTime)
 节点设置校正，并导出可复现的结果。
 
 界面上的每一个数值都来自已安装的 `openreltime` 发行版——通过它的公开 Python
-API 计算，GUI 不重写任何算法，结果与命令行完全一致。
+API 计算，GUI 不重写任何算法，命令行走的也是同一份引擎代码。
 
 | | |
 | --- | --- |
@@ -133,6 +133,16 @@ QT_QPA_PLATFORM=offscreen python -m pytest      # 无头 GUI + 适配层测试
 python tools/check_i18n.py                      # 双语目录 / 主题令牌门禁
 ```
 
+测试套件共 **144 个用例、分布在 7 个文件**里，其中真正的适配层测试只有 19
+个；其余检查打包与随包资源、文档卫生、双语目录、界面背后的逻辑、树形几何与
+实时界面本身。[docs/testing-zh.md](docs/testing-zh.md) 逐个文件列出覆盖范围、
+用哪个标记门控 Qt 绑定与引擎，以及在有 / 无这两个依赖的机器上的实测数字
+（[English](docs/testing.md)）。
+
+这 144 个用例管的是**前端**：适配层接线、打包、翻译、文档卫生与树形几何。它们不重跑
+任何对照引擎 golden 文件或验证门的比对（那些在引擎仓库里）。CI 从引擎的开发分支安装
+引擎，所以弄坏适配层的引擎提交会在这里失败，而不是等到发版之后。
+
 `tools/check_i18n.py` 强制几条保持双语能力的规则：控件代码里不留中文硬编码、
 `themes.py` 之外不留硬编码颜色、被引用的键必须两种语言都在目录里、目录里不留
 无人引用的键。也可以只针对单个文件运行它。
@@ -152,6 +162,9 @@ Zenodo 存档，版本 DOI 为
 [10.5281/zenodo.23053175](https://doi.org/10.5281/zenodo.23053175)；跨版本引用软件
 整体可用 concept DOI
 [10.5281/zenodo.23053174](https://doi.org/10.5281/zenodo.23053174)。
+`pyproject.toml` 与 `CITATION.cff` 的版本号是 **0.1.1**，即当前工作树的版本：
+0.1.1 尚未打标签、未发布、也没有 Zenodo 版本记录，因此 `CITATION.cff` 写的是与
+版本无关的 concept DOI，而不是一个并不存在的版本 DOI。
 
 ## 作者
 

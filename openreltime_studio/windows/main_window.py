@@ -1278,7 +1278,12 @@ class MainWindow(QMainWindow):
         )
         if cals and needs_cal_file:
             cal_path = out_dir / adapter.CALIBRATIONS_FILENAME
-            cal_path.write_text(adapter.calibrations_to_tsv(cals))
+            # encoding="utf-8" is not decoration: on Windows the default text
+            # encoding is the machine's locale codepage, so a taxon label outside
+            # it would raise here and fail the whole export.
+            cal_path.write_text(
+                adapter.calibrations_to_tsv(cals), encoding="utf-8"
+            )
             written.append(cal_path)
 
         # 同时导出图像（失败不阻断数据导出，但要给出可见提示）；
@@ -1299,7 +1304,16 @@ class MainWindow(QMainWindow):
         # because it consumes the report the calibrate step produces.
         if commands:
             script_path = out_dir / "run_reltime.sh"
-            script_path.write_text(adapter.build_cli_script(commands))
+            # LF, UTF-8, always: this is a POSIX shell script, and writing it with
+            # the platform defaults would hand Windows users a CRLF file that bash
+            # rejects line by line, and a non-UTF-8 file that the engine's own
+            # tooling cannot re-read.  chmod is a no-op for the execute bits on
+            # Windows, so the file is replayable anywhere except there.
+            script_path.write_text(
+                adapter.build_cli_script(commands),
+                encoding="utf-8",
+                newline="\n",
+            )
             script_path.chmod(0o755)
             written.append(script_path)
         else:

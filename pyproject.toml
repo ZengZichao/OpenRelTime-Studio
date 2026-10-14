@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "OpenRelTime-Studio"
-version = "0.1.0"
+version = "0.1.1"
 description = "OpenRelTime Studio: native desktop GUI for OpenRelTime relative-rate dating (bilingual, light/dark)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -79,7 +79,19 @@ openreltime_studio = [
 
 [tool.pytest.ini_options]
 testpaths = ["openreltime_studio/tests"]
-addopts = "-q"
+# ``--strict-markers`` keeps a typo in a capability gate from silently
+# degrading into "test collected but never skipped": an unregistered marker
+# fails the run instead of being ignored.
+addopts = "-q --strict-markers"
+markers = [
+    # Per-test capability gates.  The suite no longer vanishes as a whole
+    # when PySide6 is absent (see openreltime_studio/tests/conftest.py):
+    # only the tests that really construct a QWidget are gated, so the
+    # packaging, bundled-resource, docs-hygiene and i18n-catalog checks run
+    # everywhere.
+    "requires_qt: needs a Qt binding (PySide6); skipped with the install command in the reason when it is absent",
+    "requires_engine: needs the openreltime distribution; skipped explicitly, never silently passed",
+]
 
 [tool.ruff]
 line-length = 88
