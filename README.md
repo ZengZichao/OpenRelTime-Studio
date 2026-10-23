@@ -3,6 +3,10 @@
 **Language: English** · [简体中文](README-zh.md)
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23053174.svg)](https://doi.org/10.5281/zenodo.23053174)
+[![CI](https://github.com/ZengZichao/OpenRelTime-Studio/actions/workflows/ci.yml/badge.svg)](https://github.com/ZengZichao/OpenRelTime-Studio/actions/workflows/ci.yml)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![ORCID](https://img.shields.io/badge/ORCID-0000--0001--6553--970X-a6ce39?logo=orcid&logoColor=white)](https://orcid.org/0000-0001-6553-970X)
 
 **A native desktop application for relative-rate molecular dating.**
 OpenRelTime Studio wraps the [OpenRelTime](https://github.com/ZengZichao/OpenRelTime)
