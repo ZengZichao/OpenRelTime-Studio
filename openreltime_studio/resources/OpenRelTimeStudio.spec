@@ -141,7 +141,7 @@ app = BUNDLE(
     bundle_identifier="org.openreltime.studio",
     info_plist={
         "CFBundleDisplayName": "OpenRelTime Studio",
-        "CFBundleShortVersionString": "0.1.1",
+        "CFBundleShortVersionString": "0.1.2",
         "CFBundleVersion": "1",
         "NSHighResolutionCapable": True,
         "LSMinimumSystemVersion": "11.0",

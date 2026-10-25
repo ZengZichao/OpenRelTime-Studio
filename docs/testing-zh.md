@@ -6,7 +6,7 @@
 能跑到多少，以及哪些数字可以对外引用。本页所有数字都是**实测**得到的，不是
 推断出来的；命令见 §5。
 
-套件共 **144 个测试**。它不是「144 个适配器测试」：真正的适配器测试只有
+套件共 **155 个测试**。它不是「155 个适配器测试」：真正的适配器测试只有
 `test_adapter.py` 的 19 个，其余覆盖打包、随包资源、文档、双语目录、界面背后
 的逻辑，以及界面本身。
 
@@ -20,15 +20,16 @@
 | `test_i18n_catalogs.py` | 9 | i18n（双语目录静态检查） | 直接从源码读出的目录规则：目录之外不许残留中文字符串字面量、主题与图标模块之外不许硬编码十六进制颜色、源码引用的每个键在**两种语言**里都存在、两种语言键集合一致、`{placeholder}` 集合一致、不留无人引用的键。 |
 | `test_regressions_studio.py` | 55 | studio-logic（界面逻辑与契约回归） | 三类手段并行：真跑适配层与引擎命令行（`openreltime.cli`）的选项契约；用 `ast` 回读 Qt 源码，静态证明某种写法已经消失；对只能在真实部件上验证的行为给出**显式 skip**，并指向手工冒烟脚本里对应的检查。 |
 | `test_tree_orientation.py` | 15 | tree-layout（树形几何与朝向） | 每个尖都有一条落在自己那一行的末端分支、连接线落在父节点分歧时刻、非根节点恰好贡献两条线段、四个朝向都能画、选择经 `QSettings` 持久化、尖标签贴在靠尖那一侧坐标轴上。 |
+| `test_ui_layout_fixes.py` | 11 | ui-fixes（0.1.2 界面契约） | 0.1.2 的界面契约：分析标签页的竖向高度跟随**当前页**（矮页的「导出」组始终紧贴页尾，访问过最高的校正页之后也不反弹）、节点表列宽为 `Interactive` 且同列集重填不覆盖手动列宽、树上被点选的节点画空心强调环（随重绘保留、校正列表变动后撤除）、打包位图符合 macOS 图标网格边距。其中 4 个是静态源码回读，7 个构造 Qt 对象。 |
 | `test_ui_localization.py` | 15 | live-UI（实时界面切换） | 真的构造主窗口，**不重启进程**切换语言与主题，验证分组框标题、标签页、状态栏、菜单动作与样式表当场改变，偏好往返 `QSettings`，四种「语言 × 主题」组合下窗口都能建起来。 |
-| **合计** | **144** | | |
+| **合计** | **155** | | |
 
 有两个依赖会门控这些文件，而且门控的对象并不相同：
 
 | 依赖 | 需要它的测试数 | 原因 |
 | --- | --- | --- |
-| `openreltime`（引擎） | 104 | 适配层是 Studio 唯一的计算入口，而 `MainWindow` 会导入适配层。 |
-| `PySide6`（Qt 绑定） | 46 | 只有真的构造 `QWidget`、`QPixmap`、`QSettings`，或在 Qt 后端上创建 matplotlib 画布的用例才需要。 |
+| `openreltime`（引擎） | 115 | 适配层是 Studio 唯一的计算入口，而 `MainWindow` 会导入适配层。 |
+| `PySide6`（Qt 绑定） | 53 | 只有真的构造 `QWidget`、`QPixmap`、`QSettings`，或在 Qt 后端上创建 matplotlib 画布的用例才需要。 |
 | 两者都不需要 | 26 | 打包与随包资源检查、文档卫生、双语目录静态检查，以及混合文件里只读常量的那几个用例。 |
 
 ## 2. 收集是如何门控的
@@ -45,7 +46,8 @@ extra 就把整个测试目录丢掉；它只在任何东西导入 Qt 之前导�
 | `pytest.mark.requires_engine` | 调用适配层（含经由 `MainWindow` 间接调用）或直接调用引擎的用例 | 该用例被**显式跳过**，理由里给出失败的那条 import 与两条修复路径 |
 
 在模块顶部就导入适配层的文件（`test_adapter.py`、`test_regressions_studio.py`、
-`test_tree_orientation.py`）改在模块顶部调用 `_availability.require_engine()`，
+`test_tree_orientation.py`、`test_ui_layout_fixes.py`）改在模块顶部调用
+`_availability.require_engine()`，
 于是报出的是「一条模块级跳过」而不是每条测试各报一次；不这样做的话，光是那行
 导入就会抛异常，整场 run 以收集错误收场。理由里点名的成因与修复完全相同。
 
@@ -55,19 +57,19 @@ extra 就把整个测试目录丢掉；它只在任何东西导入 Qt 之前导�
 这正是 `test_tree_orientation.py` 报出十五条跳过而非一条的原因。
 
 **于是「收集到多少」取决于引擎，而不是 GUI 绑定。** 只要 `openreltime` 能被
-导入，任何机器上都会收集满 **144** 个，装不装 PySide6、装了但用不用得上都一样。
-引擎导不出来时，同一条命令收集到 **55** 个用例加 3 条模块级跳过，既不会归零，
+导入，任何机器上都会收集满 **155** 个，装不装 PySide6、装了但用不用得上都一样。
+引擎导不出来时，同一条命令收集到 **55** 个用例加 4 条模块级跳过，既不会归零，
 也不会因为缺依赖而变成收集错误：
 
 | 引擎可导入 | 收集 | 组成 |
 | --- | --- | --- |
-| 是 | **144** | 144 个用例，无模块级跳过 |
-| 否 | **58** | 55 个用例 + 3 条模块级跳过（`test_adapter.py`、`test_regressions_studio.py`、`test_tree_orientation.py`） |
+| 是 | **155** | 155 个用例，无模块级跳过 |
+| 否 | **59** | 55 个用例 + 4 条模块级跳过（`test_adapter.py`、`test_regressions_studio.py`、`test_tree_orientation.py`、`test_ui_layout_fixes.py`） |
 
-GUI 绑定改变的是 144 个里**有多少真的运行**。`_availability.py` 里的探测不止
+GUI 绑定改变的是 155 个里**有多少真的运行**。`_availability.py` 里的探测不止
 `import PySide6`：它另起一个子进程真的去构造 `QApplication`，因为 Qt 在没有可用
 会话时是直接 abort 整个进程而不抛异常的。所以「Qt 可用」的意思是「这台机器跑得
-起窗口会话」，跑不起时那 46 个标了 `requires_qt` 的用例逐个显式跳过，理由里点名
+起窗口会话」，跑不起时那 53 个标了 `requires_qt` 的用例逐个显式跳过，理由里点名
 失败的那条 import 或 abort 的插件。
 
 跳过绝不静默。`pytest_report_header` 会打印两个探测结果（`-v` 下可见），
@@ -76,7 +78,7 @@ GUI 绑定改变的是 144 个里**有多少真的运行**。`_availability.py` 
 ```
 gating: qt: PySide6: ABSENT -> 'requires_qt' SKIP; fix: python -m pip install "PySide6>=6.5"
 gating: engine: openreltime: NOT importable -> 'requires_engine' SKIP(...); fix: ...
-gating: 32 skipped because a capability is missing (run with -rs for the per-test reason; failures=0)
+gating: 33 skipped because a capability is missing (run with -rs for the per-test reason; failures=0)
 ```
 
 `addopts` 里还带 `--strict-markers`：门控标记写错字时整个 run 直接失败，而不是
@@ -97,12 +99,12 @@ python -m pytest -q -m "not requires_qt"          # 只跑不需要 GUI 绑定�
 python -m pytest --pyargs openreltime_studio.tests   # 针对已安装的发行版
 ```
 
-`-m "not requires_qt"` 是按标记筛除。注意上面那三个整模块门控的文件仍然会被
+`-m "not requires_qt"` 是按标记筛除。注意上面那四个整模块门控的文件仍然会被
 导入，所以它们需要引擎；两者都缺的机器上请用
 `-m "not requires_qt and not requires_engine"`，或者直接点名目录检查与文档
 检查那两个文件。
 
-CI 工作流会装齐两个依赖，因此 CI 跑满 144 个——但引擎是从**开发分支**装的，
+CI 工作流会装齐两个依赖，因此 CI 跑满 155 个——但引擎是从**开发分支**装的，
 不是从冻结的发布标签：`.github/workflows/ci.yml` 里 `ENGINE_REF: main`，
 安装的是 `openreltime[plot] @
 git+https://github.com/ZengZichao/OpenRelTime.git@main`，所以引擎里改动适配层的
@@ -155,11 +157,11 @@ QT_QPA_PLATFORM=offscreen python openreltime_studio/tests/smoke_gui.py
 
 | 环境 | 依赖 | 收集 | 通过 | 跳过 | 退出码 |
 | --- | --- | --- | --- | --- | --- |
-| (a) | PySide6 + 引擎，且 Qt 会话可用 | **144** | 141 | 3 | 0 |
-| (a2) | PySide6 + 引擎，**但没有可用的 Qt 会话** | **144** | **98** | **46** | 0 |
-| (b) | 只有引擎（无 PySide6） | 130 条（129 个用例 + 1 条模块级跳过） | **98** | 32 | 0 |
-| (c) | 只有 PySide6（无引擎） | 58 条（55 个用例 + 3 条模块级跳过） | **40** | 18 | 0 |
-| (d) | 两者都缺 | 58 条（55 个用例 + 3 条模块级跳过） | **26** | 32 | 0 |
+| (a) | PySide6 + 引擎，且 Qt 会话可用 | **155** | 152 | 3 | 0 |
+| (a2) | PySide6 + 引擎，**但没有可用的 Qt 会话** | **155** | **102** | **53** | 0 |
+| (b) | 只有引擎（无 PySide6） | 141 条（140 个用例 + 1 条模块级跳过） | **102** | 39 | 0 |
+| (c) | 只有 PySide6（无引擎） | 59 条（55 个用例 + 4 条模块级跳过） | **40** | 19 | 0 |
+| (d) | 两者都缺 | 59 条（55 个用例 + 4 条模块级跳过） | **26** | 33 | 0 |
 
 (a) 里的 3 个跳过是 `test_regressions_studio.py` 中刻意留下的占位用例，它们把
 行为交给手工冒烟脚本（`test_marks_visible_after_interactive_edit`、
@@ -167,29 +169,30 @@ QT_QPA_PLATFORM=offscreen python openreltime_studio/tests/smoke_gui.py
 
 (b) 的分文件结果：`test_adapter.py` 19/19、`test_docs_hygiene.py` 6/6、
 `test_i18n_catalogs.py` 9/9、`test_regressions_studio.py` 50/55、
-`test_bundled_example.py` 11/25、`test_ui_localization.py` 3/15、
+`test_bundled_example.py` 11/25、`test_ui_layout_fixes.py` 4/11（通过的是 4 个
+静态源码回读；7 个需要 Qt 的跳过）、`test_ui_localization.py` 3/15、
 `test_tree_orientation.py` 0/15（一条模块级跳过）。(c) 的分文件结果：
 `test_docs_hygiene.py` 6/6、`test_i18n_catalogs.py` 9/9、
 `test_bundled_example.py` 18/25、`test_ui_localization.py` 7/15，另有
-`test_adapter.py`、`test_regressions_studio.py`、`test_tree_orientation.py` 各
-一条模块级跳过。
+`test_adapter.py`、`test_regressions_studio.py`、`test_tree_orientation.py`、
+`test_ui_layout_fixes.py` 各一条模块级跳过。
 
 (a2) 就是「无显示器、且 Python 前缀里装着两套 Qt」的机器实际落在的环境，也是
 对本仓库之外引用这些数字时所用的环境：PySide6 能导入，但 `_availability` 的子进程
-探测构造不出 `QApplication`，于是 46 个 `requires_qt` 用例逐个跳过、其余照跑——
-收集 144、通过 98、跳过 46、退出码 0，且 144 − 46 = 98。写下本节这台机器
+探测构造不出 `QApplication`，于是 53 个 `requires_qt` 用例逐个跳过、其余照跑——
+收集 155、通过 102、跳过 53、退出码 0，且 155 − 53 = 102。写下本节这台机器
 （Python 3.11，PySide6 6.11.2 可导入但构造 `QApplication` 时 abort，引擎由
 `PYTHONPATH` 提供）重新实测的结果是：
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python -m pytest --collect-only -p no:cacheprovider -o addopts="--strict-markers"
-# 144 tests collected in 0.45s
+# 155 tests collected in 0.45s
 PYTHONDONTWRITEBYTECODE=1 python -m pytest -p no:cacheprovider -o addopts="--strict-markers"
-# 98 passed, 46 skipped in 4.10s
+# 102 passed, 53 skipped in 4.10s
 PYTHONDONTWRITEBYTECODE=1 python -m pytest -m requires_qt --collect-only -p no:cacheprovider -o addopts="--strict-markers"
-# 46/144 tests collected (98 deselected)          <- 按标记数出的跳过条数
+# 53/155 tests collected (102 deselected)          <- 按标记数出的跳过条数
 PYTHONDONTWRITEBYTECODE=1 python -m pytest -m requires_engine --collect-only -p no:cacheprovider -o addopts="--strict-markers"
-# 104/144 tests collected (40 deselected)
+# 115/155 tests collected (40 deselected)
 ```
 
 有两行带着这次复测暴露出的注意事项，之所以保留在表里而不是删掉，是因为它们记录的是
@@ -197,14 +200,14 @@ PYTHONDONTWRITEBYTECODE=1 python -m pytest -m requires_engine --collect-only -p 
 
 * **(a)** 需要一台 `QApplication` 真能构造起来的机器——只装一套 Qt，或者按下面
   那几行 `QT_PLUGIN_PATH` 导出设置。在上面这台机器上，(a) 会退化成 (a2)。
-* **(b)** 当初实测是干净的 130/98/32。用同一个 `/tmp/qtblock` 桩包在这里复现时，
+* **(b)** 当初实测是干净的 141/102/39。用同一个 `/tmp/qtblock` 桩包在这里复现时，
   结尾却是**收集错误**：`test_tree_orientation.py` 要导入
   `openreltime_studio.widgets.tree_canvas`，而该模块顶部的
   `from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg` 在任何绑定都
   导不出来时会抛 `ImportError: Failed to import any of the following Qt binding
-  modules`，这一步发生在任何标记来得及跳过之前（收集到 129 个用例，run 中断，
+  modules`，这一步发生在任何标记来得及跳过之前（收集到 140 个用例，run 中断，
   退出码 2）。所以 (b) 的分文件数字只有在那次导入还能撑住的机器上才拿得到；
-  本机对同一环境的诚实表述是「收集 129，另有 1 条收集错误」。该问题要改的是测试
+  本机对同一环境的诚实表述是「收集 140，另有 1 条收集错误」。该问题要改的是测试
   文件而不是文档，这里刻意不动，因为它会改变本节另一处在守护的收集语义。
 
 有一条本地环境注意事项值得记下来，因为它花掉一轮调试：如果某个 Python 前缀里
@@ -251,21 +254,21 @@ PYTHONPATH="/tmp/qtblock" python -m pytest -q -p no:pytest-qt --junitxml=report-
 下面每个数字都带着它是在哪种环境下量出来的：只有「收集到多少」在装好引擎的机器
 上是恒定的，「跑掉多少」始终取决于 Qt 会话。
 
-* Studio 套件是 **144 个测试**：19 个适配层测试、25 个内置示例与图标的打包
+* Studio 套件是 **155 个测试**：19 个适配层测试、25 个内置示例与图标的打包
   测试、6 个文档卫生测试、9 个双语目录测试、55 个界面逻辑回归测试、
-  15 个树形几何测试、15 个实时界面测试。
-* 只要引擎发行版 `openreltime` **可以被导入**，144 个就全部被收集，
+  15 个树形几何测试、15 个实时界面测试、11 个 0.1.2 界面修复回归测试。
+* 只要引擎发行版 `openreltime` **可以被导入**，155 个就全部被收集，
   与 GUI 绑定装没装、装得上用不用得上都无关。引擎导不出来时，同一条命令
-  收集到 55 个用例加 3 条显式的模块级跳过：套件既不会整体消失，也不会
+  收集到 55 个用例加 4 条显式的模块级跳过：套件既不会整体消失，也不会
   仅仅因为缺依赖就以收集错误收场。
-* Qt 绑定可用且引擎已安装时 **144 个全部运行**（141 通过，3 个把行为交给手工
+* Qt 绑定可用且引擎已安装时 **155 个全部运行**（152 通过，3 个把行为交给手工
   离屏冒烟脚本）。
-* **引擎已装但没有可用 Qt 会话时，98 个运行、46 个显式跳过**——这 46 个正是
+* **引擎已装但没有可用 Qt 会话时，102 个运行、53 个显式跳过**——这 53 个正是
   标了 `requires_qt` 的用例，逐个跳过、理由里点名成因与修复命令；不会折叠成
   一条模块级跳过，所以头条数字不随机器漂移。
-* **两个依赖都没有时仍有 26 个运行**（收集 58：55 个用例 + 3 条模块级跳过，
-  跳过 32）；其余跳过，理由里点名缺的是哪一次 import。
-* 这 144 个用例管的是**前端**：适配层把引擎结果换算成界面模型、示例与图标
+* **两个依赖都没有时仍有 26 个运行**（收集 59：55 个用例 + 4 条模块级跳过，
+  跳过 33）；其余跳过，理由里点名缺的是哪一次 import。
+* 这 155 个用例管的是**前端**：适配层把引擎结果换算成界面模型、示例与图标
   随包发行、双语目录保持同步、文档遵守仓库规则、界面契约不回归、树按正确
   几何画出来。它们**不重跑任何参照比对**：本套件里没有任何用例拿界面上的数字
   去对照 R3F golden 文件或引擎的验证门（那些都在引擎仓库）。因此报告这套件的

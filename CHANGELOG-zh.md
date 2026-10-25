@@ -6,7 +6,43 @@
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)，版本号遵循
 [语义化版本 Semantic Versioning](https://semver.org/spec/v2.0.0.html)。
 
-## 未发布
+## 0.1.2 — 2026-10-25
+
+第一轮真实使用反馈的七项界面修复；引擎、算法与数据格式均无改动。
+macOS 包沿用 0.1.1 的引擎钉子（`ENGINE_REF = v0.1.1`）。
+
+### 变更
+
+- `docs/testing.md` / `docs/testing-zh.md`：测试套件清单加入第八个文件
+  （`test_ui_layout_fixes.py`，11 个用例），并刷新五种环境的实测数字
+  （收集 155；(a)/(a2)/(c)/(d) 四种环境分别通过 152/102/40/26）。
+
+### 修复
+
+- 左侧 RRF / 校正 / CI / CorrTest / ddBD 五个标签页在「××参数」组与
+  「导出」组之间不再出现大片空白。`QTabWidget` 原本按最高的页（校正页）
+  定高，且其 `heightForWidth` 会把该页的高度透传给外层布局，四个矮页被
+  撑高——访问过一次校正页之后还缩不回来。新的 `CurrentHeightTabWidget`
+  让所有竖向尺寸（`sizeHint` / `minimumSizeHint` / `heightForWidth`）都
+  跟随**当前页**，并去掉 `Expanding` 竖向策略，「导出」组始终紧贴活动页
+  底部。
+- 右侧节点表的列宽恢复可拖拽：表头原来用 `ResizeToContents`，每次填充
+  都会收回列宽控制权，分隔线拖不动。现在改为 `Interactive`——初始仍按
+  内容适配，之后归用户管；只有列集真正变化（如切换结果类型）时才重新
+  适配，切换速率着色这类同列集重填不再覆盖手动列宽。
+- 在树画布上点击节点现在会留下可见标识：被点选节点画一个空心强调环，与
+  校正点的实心标记相区分。环随主题/语言切换的整树重绘保留，校正列表变动
+  后（新节点由实心标记接管）自动撤除。
+- Dock 图标此前明显大于其他应用：打包位图（`icon.png` / `icon.icns`）是
+  满幅渲染的，而 macOS 图标网格要求主体约占画布 80%。打包位图现在按
+  `MACOS_ICON_FILL`（SVG 画布上的 0.88，叠加其自身边距后主体 ≈80%）
+  渲染，矢量按最终尺寸绘制、无重采样模糊；窗口图标不受影响。
+- 测试：解析随包图标 SVG 改用 `defusedxml`（新增 dev 依赖）——标准库
+  `ElementTree` 接受内部 DTD 实体扩展，安全门对第一方文件同样拒绝这种
+  写法。`test_docs_hygiene` 同时把检出目录内的虚拟环境（`.venv*`）加入
+  来源标记扫描的豁免，与 `dist` / `build` 同类。
+
+## 0.1.1 — 2026-10-08
 
 ### 新增
 

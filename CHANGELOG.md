@@ -6,6 +6,54 @@ All notable changes to **OpenRelTime Studio** are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), the versioning
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.2 — 2026-10-25
+
+Seven interface fixes from the first round of real use; no engine change, no
+algorithm change, no data-format change. The macOS bundle embeds the same
+engine pin as 0.1.1 (`ENGINE_REF = v0.1.1`).
+
+### Changed
+
+- `docs/testing.md` / `docs/testing-zh.md`: the test-suite inventory lists the
+  eighth file (`test_ui_layout_fixes.py`, 11 tests) and the measured numbers of
+  all five configurations were refreshed (155 collected; 152 / 102 / 40 / 26
+  passed in the (a) / (a2) / (c) / (d) configurations).
+
+### Fixed
+
+- The left-panel analysis tabs (RRF / Calibration / CI / CorrTest / ddBD) no
+  longer show a large blank stretch between their parameter group and the
+  export group. `QTabWidget` sized itself to its tallest page (the
+  calibration tab) and its `heightForWidth` leaked that page's height to the
+  outer layout, so the four short tabs were stretched — and stayed stretched
+  once the calibration tab had been visited. The new
+  `CurrentHeightTabWidget` derives every vertical hint (`sizeHint`,
+  `minimumSizeHint`, `heightForWidth`) from the current page and drops the
+  `Expanding` vertical policy, so the export group always sits directly
+  under the active tab.
+- The node table's columns are draggable again: the header used
+  `ResizeToContents`, which retakes control of column widths on every fill,
+  so the divider could not be dragged. Columns are now `Interactive` — they
+  start content-fitted and belong to the user afterwards; re-fitting only
+  happens when the column set actually changes (e.g. switching result
+  types), not on cosmetic refills such as toggling rate colouring.
+- Clicking a node on the tree canvas now leaves a visible mark: a hollow
+  accent ring on the picked node, distinct from the solid calibration mark.
+  The ring survives theme and language switches (they replot the whole
+  tree) and is cleared once the calibration list changes, when the added
+  node takes over the solid mark.
+- The dock icon was visibly larger than every other app's: the packaged
+  bitmaps (`icon.png` / `icon.icns`) were rendered full-bleed while the
+  macOS icon grid expects the body to cover about 80% of the canvas.
+  Bundle bitmaps are now rendered at `MACOS_ICON_FILL` (0.88 on the SVG
+  canvas, whose own margins put the body at ≈80%), vector-rendered at the
+  final size so there is no resampling blur. Window icons are unchanged.
+- Tests: parsing the bundled icon SVGs now goes through `defusedxml`
+  (new dev extra) — the stdlib `ElementTree` accepts internal DTD entity
+  expansion, which the security gate rejects even on first-party files.
+  `test_docs_hygiene` also exempts in-checkout virtualenvs (`.venv*`) from
+  the provenance scan, the same class as `dist` / `build`.
+
 ## 0.1.1 — 2026-10-08
 
 ### Added

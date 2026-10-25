@@ -16,7 +16,7 @@ to its counterpart at the top. The project root is paired the same way:
 | | English | 中文 | Content / 内容 |
 | --- | --- | --- | --- |
 | GUI user guide | [usage-en.md](usage-en.md) | [usage-zh.md](usage-zh.md) | Installation, launching, the three-pane interface, live language and theme switching, the full RRF → calibration → CI → CorrTest → ddBD workflow with every parameter and its default, the node table and export inventory, the engine-warnings panel and cancellation, troubleshooting, and developer notes 安装与启动、三窗格界面、语言与主题即时切换、RRF → 校正 → CI → CorrTest → ddBD 完整流程及全部参数与默认值、节点表与导出清单、引擎警告面板与取消、故障排查，以及开发者须知 |
-| Test-suite inventory | [testing.md](testing.md) | [testing-zh.md](testing-zh.md) | What each of the seven test files covers and how many tests each holds, how collection is gated per test on the Qt binding and the engine, the measured numbers on machines with and without those dependencies, and how to run the manual off-screen smoke script 七个测试文件各自覆盖什么、各有多少用例，收集如何按用例粒度门控，有无依赖时的实测数字，以及手工离屏冒烟脚本的用法 |
+| Test-suite inventory | [testing.md](testing.md) | [testing-zh.md](testing-zh.md) | What each of the eight test files covers and how many tests each holds, how collection is gated per test on the Qt binding and the engine, the measured numbers on machines with and without those dependencies, and how to run the manual off-screen smoke script 八个测试文件各自覆盖什么、各有多少用例，收集如何按用例粒度门控，有无依赖时的实测数字，以及手工离屏冒烟脚本的用法 |
 
 Both documents name on-screen items exactly as the interface does: the English
 manual quotes the wording of `openreltime_studio/locales/en/`, the Chinese

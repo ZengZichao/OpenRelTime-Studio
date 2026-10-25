@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "OpenRelTime-Studio"
-version = "0.1.1"
+version = "0.1.2"
 description = "OpenRelTime Studio: native desktop GUI for OpenRelTime relative-rate dating (bilingual, light/dark)"
 readme = "README.md"
 requires-python = ">=3.10"
