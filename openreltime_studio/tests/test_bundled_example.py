@@ -19,9 +19,9 @@
 from __future__ import annotations
 
 import time
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import defusedxml.ElementTree as ET
 import pytest
 
 from openreltime_studio import examples, i18n

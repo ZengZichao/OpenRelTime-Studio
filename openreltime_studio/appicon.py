@@ -19,6 +19,7 @@ from openreltime_studio.themes import icon_svg_path
 
 __all__ = [
     "ICON_SIZES",
+    "MACOS_ICON_FILL",
     "SYMBOLIC_MAX_PX",
     "app_icon",
     "icon_dir",
@@ -33,6 +34,13 @@ ICON_SIZES = (16, 24, 32, 48, 64, 128, 256, 512)
 
 #: 不超过这个边长就改用简化变体（64 px 下主图的时间轴已与分支粘连）
 SYMBOLIC_MAX_PX = 64
+
+#: macOS 图标网格：主体占整幅画布的比例。
+#: Apple HIG 规定 1024 画布上图标主体为 824×824（≈80.5%）；SVG 画布自身留有
+#: 12/256 边距（主体 232/256 ≈ 90.6%），满幅渲染会让 Dock 图标比系统其他
+#: 应用明显偏大。打包用位图（icon.png / icon.icns）按此比例缩进画布中心；
+#: 窗口内的 :func:`app_icon` 不受影响（状态栏/窗口图标无此网格约束）。
+MACOS_ICON_FILL = 0.88
 
 _SYMBOLIC_FILENAME = "OpenRelTime-Studio-symbolic.svg"
 
@@ -61,8 +69,13 @@ def svg_source(size: int | None = None) -> bytes:
     return path.read_bytes()
 
 
-def pixmap_from_svg(size: int):
-    """把对应变体渲染为 ``size``×``size`` 的 QPixmap；QtSvg 缺失时返回 None。"""
+def pixmap_from_svg(size: int, *, fill_ratio: float = 1.0):
+    """把对应变体渲染为 ``size``×``size`` 的 QPixmap；QtSvg 缺失时返回 None。
+
+    ``fill_ratio`` 把 SVG 缩进画布中心（``1.0`` 满幅；打包用位图传
+    :data:`MACOS_ICON_FILL` 以符合 macOS 图标网格）。矢量按最终尺寸渲染，
+    缩进不会带来重采样损失。
+    """
     try:
         from PySide6.QtCore import QByteArray, QRectF, Qt
         from PySide6.QtGui import QPainter, QPixmap
@@ -76,7 +89,9 @@ def pixmap_from_svg(size: int):
     pm.fill(Qt.GlobalColor.transparent)
     painter = QPainter(pm)
     painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-    renderer.render(painter, QRectF(0, 0, size, size))
+    side = size * fill_ratio
+    offset = (size - side) / 2
+    renderer.render(painter, QRectF(offset, offset, side, side))
     painter.end()
     return pm
 

@@ -51,7 +51,11 @@ def _translated_columns() -> dict[str, str]:
 
 
 class NodeTable(QTableWidget):
-    """显示 Result.to_pandas() 结果的表格部件。"""
+    """显示 Result.to_pandas() 结果的表格部件。
+
+    列宽为 ``Interactive`` 模式：填充时按内容给一次初始宽度，之后用户
+    可拖拽表头随意调整；列集不变的重填不再覆盖手动列宽。
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -64,7 +68,9 @@ class NodeTable(QTableWidget):
         self.verticalHeader().setVisible(False)
         header = self.horizontalHeader()
         header.setStretchLastSection(True)
-        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        # Interactive：列宽初始按内容适配，但归用户管，可拖拽调节；
+        # 自适应模式会在每次数据变化时收回控制权，表头拖不动。
+        header.setSectionResizeMode(QHeaderView.Interactive)
         header.setDefaultAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         self._language_hook = i18n.on_language_change(self._retranslate)
 
@@ -82,10 +88,14 @@ class NodeTable(QTableWidget):
         """从 pandas DataFrame 填充表格。"""
         self.setUpdatesEnabled(False)
         try:
+            columns = [str(c) for c in df.columns]
+            # 列集不变视为同一次会话的重填（如切换速率着色），保留用户
+            # 拖出来的列宽；换了结果类型/列结构才重新按内容适配
+            same_columns = self.columnCount() == len(columns) and self._columns == columns
             self.clear()
             self.setRowCount(df.shape[0])
             self.setColumnCount(df.shape[1])
-            self._columns = [str(c) for c in df.columns]
+            self._columns = columns
             self.setHorizontalHeaderLabels(self._header_labels(self._columns))
             for i, (_, row) in enumerate(df.iterrows()):
                 for j, val in enumerate(row):
@@ -105,7 +115,8 @@ class NodeTable(QTableWidget):
                             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
                         )
                     self.setItem(i, j, item)
-            self.resizeColumnsToContents()
+            if not same_columns:
+                self.resizeColumnsToContents()
         finally:
             self.setUpdatesEnabled(True)
 

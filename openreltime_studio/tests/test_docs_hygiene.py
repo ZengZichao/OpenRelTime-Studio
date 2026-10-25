@@ -71,7 +71,10 @@ def _is_outside_our_control(path: Path) -> bool:
     ``dist/OpenRelTimeStudio.app`` ships byte-for-byte as built and ad-hoc
     signed, and it carries the license files of bundled third-party
     dependencies (numpy and friends).  Those texts are not ours to change, so
-    scanning them would let an upstream rewrite turn our CI red.
+    scanning them would let an upstream rewrite turn our CI red.  A virtual
+    environment created inside the checkout is the same class of thing: its
+    ``site-packages`` belongs to PySide6, matplotlib and friends, not to this
+    repository.
     """
     parts = [p.lower() for p in path.relative_to(REPO_ROOT).parts]
     return (
@@ -79,6 +82,8 @@ def _is_outside_our_control(path: Path) -> bool:
         or "build" in parts
         or "__pycache__" in parts
         or ".pytest_cache" in parts
+        or ".mypy_cache" in parts
+        or any(part == ".venv" or part.startswith(".venv-") for part in parts)
         or any(part.endswith(".app") for part in parts)
     )
 

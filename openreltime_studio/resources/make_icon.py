@@ -6,6 +6,9 @@ SVG（``icons/OpenRelTime-Studio.svg``）是图标的唯一权威来源；位图
     python openreltime_studio/resources/make_icon.py
 
 ``icon.icns`` 只在 macOS 上生成（依赖系统自带的 ``sips`` / ``iconutil``）。
+
+所有打包位图按 :data:`~openreltime_studio.appicon.MACOS_ICON_FILL` 缩进画布
+中心，使图标主体符合 macOS HIG 的图标网格（否则 Dock 图标会明显偏大）。
 """
 
 from __future__ import annotations
@@ -23,7 +26,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtWidgets import QApplication  # noqa: E402
 
-from openreltime_studio.appicon import pixmap_from_svg  # noqa: E402
+from openreltime_studio.appicon import MACOS_ICON_FILL, pixmap_from_svg  # noqa: E402
 
 PNG = ROOT / "icon.png"
 ICNS = ROOT / "icon.icns"
@@ -31,7 +34,7 @@ ICNS_SIZE = 1024
 
 
 def build_png(app: QApplication) -> Path:
-    pm = pixmap_from_svg(512)
+    pm = pixmap_from_svg(512, fill_ratio=MACOS_ICON_FILL)
     if pm is None:
         raise SystemExit("PySide6.QtSvg 不可用，无法从 SVG 渲染图标")
     pm.save(str(PNG))
@@ -47,12 +50,12 @@ def build_icns(app: QApplication) -> Path | None:
         iconset = Path(tmp) / "AppIcon.iconset"
         iconset.mkdir()
         for size in (16, 32, 64, 128, 256, 512, 1024):
-            pm = pixmap_from_svg(size)
+            pm = pixmap_from_svg(size, fill_ratio=MACOS_ICON_FILL)
             if pm is None:
                 return None
             pm.save(str(iconset / f"icon_{size}x{size}.png"))
             if size <= 512:
-                pm2 = pixmap_from_svg(size * 2)
+                pm2 = pixmap_from_svg(size * 2, fill_ratio=MACOS_ICON_FILL)
                 if pm2 is not None:
                     pm2.save(str(iconset / f"icon_{size}x{size}@2x.png"))
         subprocess.run(

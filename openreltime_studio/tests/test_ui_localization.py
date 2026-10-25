@@ -14,8 +14,8 @@
 from __future__ import annotations
 
 import re
-import xml.etree.ElementTree as ET
 
+import defusedxml.ElementTree as ET
 import pytest
 
 from openreltime_studio import i18n, themes

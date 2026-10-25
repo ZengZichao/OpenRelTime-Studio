@@ -24,7 +24,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import QSettings, Qt
+from PySide6.QtCore import QSettings, QSize, Qt
 from PySide6.QtGui import QAction, QActionGroup
 from PySide6.QtWidgets import (
     QApplication,
@@ -42,6 +42,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QProgressDialog,
     QScrollArea,
+    QSizePolicy,
     QSplitter,
     QTabWidget,
     QTextEdit,
@@ -92,6 +93,89 @@ _TAB_KEYS = (
     "menu.tab_corrtest",
     "menu.tab_ddbd",
 )
+
+
+class CurrentHeightTabWidget(QTabWidget):
+    """竖向高度跟随**当前页**的标签页容器。
+
+    ``QTabWidget`` 默认把竖向 sizeHint 取成所有页中的最大值：最高的页
+    （校正页，含校正点编辑器）会把其余页也撑到同样高，矮的页只能在页尾
+    留下一大片空白——视觉上正好垫在「××参数」组与「导出」组之间。这里
+    把竖向 hint 改成「当前页高度 + 框架开销」，切页时通知外层布局重排，
+    让「导出」组始终贴住当前页的底部。
+
+    竖向策略同时改为 ``Preferred``：默认的 ``Expanding`` 会让标签页在外层
+    布局出现多余空间时（例如滚动区内容因访问过高页而变大且不主动收缩）
+    持续吸收剩余高度，矮页照样被撑出空白；``Preferred`` 保证它只取 hint。
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        policy = self.sizePolicy()
+        policy.setVerticalPolicy(QSizePolicy.Policy.Preferred)
+        self.setSizePolicy(policy)
+        self.currentChanged.connect(self._on_current_changed)
+
+    def _pages(self) -> list[QWidget]:
+        return [
+            page
+            for page in (self.widget(i) for i in range(self.count()))
+            if page is not None
+        ]
+
+    def _chrome_height(self, *, minimum: bool) -> int:
+        """Tab 框架自身的竖向开销（Tab 条 + pane 边框）。
+
+        Qt 自己的 hint 恒为「框架开销 + 各页 hint 的最大值」，因此用其
+        反推框架开销，再换上当前页的 hint，即可精确复刻 Qt 的公式。
+        """
+        if minimum:
+            total = super().minimumSizeHint().height()
+            page_hints = [w.minimumSizeHint().height() for w in self._pages()]
+        else:
+            total = super().sizeHint().height()
+            page_hints = [w.sizeHint().height() for w in self._pages()]
+        return total - (max(page_hints) if page_hints else 0)
+
+    def _on_current_changed(self, _index: int) -> None:
+        self.updateGeometry()
+
+    def sizeHint(self) -> QSize:
+        page = self.currentWidget()
+        if page is None:
+            return super().sizeHint()
+        hint = super().sizeHint()
+        hint.setHeight(self._chrome_height(minimum=False) + page.sizeHint().height())
+        return hint
+
+    def minimumSizeHint(self) -> QSize:
+        page = self.currentWidget()
+        if page is None:
+            return super().minimumSizeHint()
+        hint = super().minimumSizeHint()
+        hint.setHeight(
+            self._chrome_height(minimum=True) + page.minimumSizeHint().height()
+        )
+        return hint
+
+    def hasHeightForWidth(self) -> bool:
+        """只跟随当前页的 hfw。
+
+        ``QWidget`` 默认把内部布局（含**全部**页）的 hfw 透传出去：只要有一页
+        带换行标签（校正编辑器），外层布局就会永远按那一页的 hfw 拉高容器，
+        其余页怎么切都缩不回来。这里改为只看当前页。
+        """
+        page = self.currentWidget()
+        return page.hasHeightForWidth() if page is not None else False
+
+    def heightForWidth(self, width: int) -> int:
+        page = self.currentWidget()
+        if page is None or not page.hasHeightForWidth():
+            return self.sizeHint().height()
+        # 页宽 ≈ 容器宽减去 pane 左右各 2px 边框
+        return self._chrome_height(minimum=False) + page.heightForWidth(
+            max(width - 4, 1)
+        )
 
 
 class MainWindow(QMainWindow):
@@ -215,8 +299,8 @@ class MainWindow(QMainWindow):
 
         left_layout.addWidget(file_group)
 
-        # 分析类型标签页
-        self.analysis_tabs = QTabWidget()
+        # 分析类型标签页（竖向高度跟随当前页，矮页不再留大片空白）
+        self.analysis_tabs = CurrentHeightTabWidget()
         self.analysis_tabs.setDocumentMode(True)
 
         # Tab 1: RRF
@@ -609,6 +693,9 @@ class MainWindow(QMainWindow):
                 if node is not None:
                     ids.append(node.node_id)
         self.canvas.set_calibration_marks(ids)
+        # 校正列表变动（含添加）后，树上的「待编辑」选中环一并撤掉：
+        # 已加入的节点由校正点标记接管，未加入的等待下一次点击
+        self.canvas.clear_selected_node()
 
     def _update_warning_badge(self) -> None:
         """按引擎警告数量刷新徽标可见性与文案。"""
@@ -1207,7 +1294,8 @@ class MainWindow(QMainWindow):
     # ---- 画布交互 ------------------------------------------------------
 
     def _on_node_clicked(self, node_id: int):
-        """树画布节点点击：在校正编辑器中设置待编辑节点。"""
+        """树画布节点点击：树上画出选中环，并在校正编辑器中设置待编辑节点。"""
+        self.canvas.set_selected_node(node_id)
         self.analysis_tabs.setCurrentWidget(self._cal_tab)
         self.calibration_editor.set_pending_node(node_id)
 

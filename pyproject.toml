@@ -45,7 +45,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.4", "pytest-cov>=4.1", "ruff>=0.4", "mypy>=1.8"]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.4",
+    "mypy>=1.8",
+    # The test suite parses the bundled icon SVGs with ElementTree; defusedxml
+    # neutralises the internal-entity expansion the stdlib parser accepts.
+    "defusedxml>=0.7",
+]
 
 [project.scripts]
 openreltime-studio = "openreltime_studio:main"

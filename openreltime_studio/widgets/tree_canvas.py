@@ -93,6 +93,8 @@ class TreeCanvas(FigureCanvas):
         self._hit_radius_px: float = 10.0  # 命中半径（设备像素，量纲一致）
         self._calibration_marks: set[int] = set()  # 已标记校正点
         self._mark_artists: list = []  # 校正点标记的 Artist（重绘时移除）
+        # 当前点选的内部节点（画高亮环，区别于已确认的校正点标记）
+        self._selected_node: Optional[int] = None
         # 根节点朝向：left / right / top / bottom
         self._orientation = configured_orientation()
         # 当前视图（类型 + 入参）：主题/语言切换时据此重画，不丢已加载结果
@@ -121,6 +123,7 @@ class TreeCanvas(FigureCanvas):
         self._result = None
         self._calibration_marks = set()
         self._mark_artists = []
+        self._selected_node = None
         self._view = {"kind": "empty"}
         self._draw_empty()
         self.draw_idle()
@@ -441,7 +444,7 @@ class TreeCanvas(FigureCanvas):
         self.fig.tight_layout()
         self.draw_idle()
 
-    # ---- 校正点标记 -----------------------------------------------------
+    # ---- 校正点与点选标记 -------------------------------------------------
 
     def mark_calibration_node(self, node_id: int):
         """在图上标记一个校正点。"""
@@ -462,6 +465,27 @@ class TreeCanvas(FigureCanvas):
         """清除所有校正点标记。"""
         self._calibration_marks.clear()
         self._redraw_marks()
+
+    def set_selected_node(self, node_id: int) -> None:
+        """记录并在图上画出「当前点选节点」的高亮环。
+
+        该环表示校正编辑器里待编辑的目标节点，与已确认的校正点（实心
+        标记）用不同样式区分；同与 ``_node_coords`` 一样随树重绘保留。
+        """
+        self._selected_node = int(node_id)
+        self._redraw_marks()
+
+    def clear_selected_node(self) -> None:
+        """撤掉当前点选环（例如校正列表变动、切换目标节点后）。"""
+        if self._selected_node is None:
+            return
+        self._selected_node = None
+        self._redraw_marks()
+
+    @property
+    def selected_node(self) -> Optional[int]:
+        """当前点选的节点 ID；未点选时为 ``None``。"""
+        return self._selected_node
 
     def _redraw_marks(self):
         """按当前标记集合重画标记，并刷新画布。"""
@@ -484,6 +508,15 @@ class TreeCanvas(FigureCanvas):
                 mew=1.0, zorder=10,
             )
             self._mark_artists.append(line)
+        sel = self._selected_node
+        if sel is not None and sel in self._node_coords:
+            # 空心高亮环：一眼可见「点了谁」，且不与校正点实心标记混淆
+            x, y = self._node_coords[sel]
+            (ring,) = self.ax.plot(
+                x, y, "o", ms=13, mfc="none", mec=tk.accent,
+                mew=2.0, zorder=11,
+            )
+            self._mark_artists.append(ring)
 
     def save_figure(self, path: str, *, dpi: int = 200):
         """保存当前图像到文件。"""
