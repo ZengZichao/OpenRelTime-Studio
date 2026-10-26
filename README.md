@@ -184,13 +184,12 @@ engine changes that API, Studio's adapter layer
 Distributed under GPL-3.0-or-later, matching the engine. See
 [`LICENSE`](LICENSE), [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)
 ([中文](THIRD-PARTY-NOTICES-zh.md)) and [`CITATION.cff`](CITATION.cff).
-v0.1.0 is archived on Zenodo at
-[10.5281/zenodo.23053175](https://doi.org/10.5281/zenodo.23053175); cite
-[10.5281/zenodo.23053174](https://doi.org/10.5281/zenodo.23053174) for the
-software as a whole across versions. `pyproject.toml` and `CITATION.cff` are at
-**0.1.1**, the current working-tree version: 0.1.1 has no tag, no release and no
-Zenodo version record yet, so `CITATION.cff` carries the version-agnostic
-concept DOI rather than a version DOI that does not exist.
+Every tagged release is archived on Zenodo under the concept DOI
+[10.5281/zenodo.23053174](https://doi.org/10.5281/zenodo.23053174); the v0.1.2
+version record is
+[10.5281/zenodo.23644085](https://doi.org/10.5281/zenodo.23644085).
+`pyproject.toml` and `CITATION.cff` are at **0.1.2**, and `CITATION.cff`
+carries the DOI of that release's Zenodo version record.
 
 ## Authors
 

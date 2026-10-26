@@ -157,14 +157,13 @@ OpenRelTime Studio 是一个**依赖** OpenRelTime 引擎的独立项目，引�
 
 以 GPL-3.0-or-later 发布，与引擎一致。见
 [`LICENSE`](LICENSE)、[`THIRD-PARTY-NOTICES-zh.md`](THIRD-PARTY-NOTICES-zh.md)
-（[English](THIRD-PARTY-NOTICES.md)）与 [`CITATION.cff`](CITATION.cff)。v0.1.0 已在
-Zenodo 存档，版本 DOI 为
-[10.5281/zenodo.23053175](https://doi.org/10.5281/zenodo.23053175)；跨版本引用软件
-整体可用 concept DOI
-[10.5281/zenodo.23053174](https://doi.org/10.5281/zenodo.23053174)。
-`pyproject.toml` 与 `CITATION.cff` 的版本号是 **0.1.1**，即当前工作树的版本：
-0.1.1 尚未打标签、未发布、也没有 Zenodo 版本记录，因此 `CITATION.cff` 写的是与
-版本无关的 concept DOI，而不是一个并不存在的版本 DOI。
+（[English](THIRD-PARTY-NOTICES.md)）与 [`CITATION.cff`](CITATION.cff)。每个打了
+标签的发布都在 Zenodo 的 concept DOI
+[10.5281/zenodo.23053174](https://doi.org/10.5281/zenodo.23053174) 下存档；
+v0.1.2 的版本 DOI 是
+[10.5281/zenodo.23644085](https://doi.org/10.5281/zenodo.23644085)。
+`pyproject.toml` 与 `CITATION.cff` 的版本号是 **0.1.2**，`CITATION.cff` 写的
+就是这次发布对应的 Zenodo 版本记录 DOI。
 
 ## 作者
 

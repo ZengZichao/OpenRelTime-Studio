@@ -17,14 +17,14 @@ authors:
     email: "wyz@sjtu.edu.cn"
     orcid: "https://orcid.org/0000-0001-8715-1386"
 version: "0.1.2"
-# The Studio's Zenodo *concept* DOI.  It is version-agnostic and resolves today,
-# so it is the only DOI that is true for 0.1.2 right now.  The DOI it used to
-# carry here, 10.5281/zenodo.23053175, is the v0.1.0 *version* record and must
-# not be paired with 0.1.2.  When 0.1.2 is tagged and released, Zenodo mints a
-# new version record under this concept DOI; swap `doi` for that record's DOI
-# and set `date-released` to its publication date at the same commit (see the
-# release checklist in CONTRIBUTING.md).
-doi: "10.5281/zenodo.23053174"
+# The DOI below is the Zenodo *version* record minted for v0.1.2 when the
+# release was published (concept DOI: 10.5281/zenodo.23053174, which is what
+# this file carried until then).  10.5281/zenodo.23053175 is the v0.1.0
+# *version* record and must not be paired with 0.1.2.  The next release
+# repeats the ritual: tag, wait for Zenodo to mint the version record, then
+# swap `doi` and set `date-released` to its publication date at the same
+# commit (see the release checklist in CONTRIBUTING.md).
+doi: "10.5281/zenodo.23644085"
 date-released: "2026-10-25"
 license: GPL-3.0-or-later
 funding: >-
