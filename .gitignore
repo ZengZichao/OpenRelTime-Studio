@@ -16,3 +16,5 @@ htmlcov/
 .DS_Store
 .smoke_out/
 *.log
+# Local tooling state (hook state, reports, history); never part of the source.
+.mimosa/
